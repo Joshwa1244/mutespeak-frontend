@@ -10,7 +10,7 @@ export default function AuthWindow({ title, subtitle, children }) {
     <div className="auth-page">
       <div className="auth-window">
         <div className="auth-titlebar">
-          <span className="pixel auth-titlebar-text">◆ CoGrad</span>
+          <span className="pixel auth-titlebar-text">◆ mutespeak;</span>
           <div className="auth-dots">
             <span className="auth-dot" />
             <span className="auth-dot" />
