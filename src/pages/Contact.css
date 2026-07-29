@@ -1,0 +1,694 @@
+/* ===============================================================
+   MUTESPEAK — CONTACT PAGE
+================================================================ */
+
+.contact-page {
+
+  width: 100%;
+
+  background: #ffffff;
+
+  color: #252821;
+
+}
+
+
+.contact-container,
+.contact-direct-inner,
+.contact-note-inner {
+
+  width:
+    min(
+      1180px,
+      calc(100% - 48px)
+    );
+
+  margin: 0 auto;
+
+}
+
+
+/* ===============================================================
+   HERO
+================================================================ */
+
+.contact-hero {
+
+  padding:
+    96px
+    0
+    88px;
+
+  border-bottom:
+    1px solid #e7e7e2;
+
+}
+
+
+.contact-hero .contact-container {
+
+  max-width: 1180px;
+
+}
+
+
+.contact-eyebrow {
+
+  display: block;
+
+  margin-bottom: 18px;
+
+  color: #9a8d2c;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  line-height: 1.3;
+
+  letter-spacing: 0.1em;
+
+  text-transform: uppercase;
+
+}
+
+
+.contact-hero h1 {
+
+  max-width: 720px;
+
+  margin:
+    0
+    0
+    24px;
+
+  color: #003f22;
+
+  font-size:
+    clamp(
+      46px,
+      7vw,
+      76px
+    );
+
+  font-weight: 800;
+
+  line-height: 0.98;
+
+  letter-spacing: -0.055em;
+
+}
+
+
+.contact-hero p {
+
+  max-width: 650px;
+
+  margin: 0;
+
+  color: #62665f;
+
+  font-size: 17px;
+
+  line-height: 1.75;
+
+}
+
+
+/* ===============================================================
+   CONTACT OPTIONS
+================================================================ */
+
+.contact-options {
+
+  padding:
+    96px
+    0
+    104px;
+
+}
+
+
+.contact-options-heading {
+
+  margin-bottom: 48px;
+
+}
+
+
+.contact-section-number {
+
+  display: block;
+
+  margin-bottom: 14px;
+
+  color: #9a8d2c;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+
+}
+
+
+.contact-options-heading h2 {
+
+  margin: 0;
+
+  color: #003f22;
+
+  font-size:
+    clamp(
+      30px,
+      4vw,
+      44px
+    );
+
+  font-weight: 800;
+
+  line-height: 1.08;
+
+  letter-spacing: -0.04em;
+
+}
+
+
+/* ===============================================================
+   CONTACT CARDS
+================================================================ */
+
+.contact-card-grid {
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+
+  border-top:
+    1px solid #dfe2dc;
+
+  border-bottom:
+    1px solid #dfe2dc;
+
+}
+
+
+.contact-card {
+
+  min-height: 330px;
+
+  padding: 34px;
+
+  border-right:
+    1px solid #dfe2dc;
+
+  display: flex;
+
+  flex-direction: column;
+
+}
+
+
+.contact-card:last-child {
+
+  border-right: 0;
+
+}
+
+
+.contact-card-label {
+
+  margin-bottom: 48px;
+
+  color: #9a8d2c;
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+
+  text-transform: uppercase;
+
+}
+
+
+.contact-card h3 {
+
+  margin:
+    0
+    0
+    14px;
+
+  color: #003f22;
+
+  font-size: 22px;
+
+  font-weight: 750;
+
+  line-height: 1.2;
+
+  letter-spacing: -0.025em;
+
+}
+
+
+.contact-card p {
+
+  margin:
+    0
+    0
+    28px;
+
+  color: #686c65;
+
+  font-size: 14px;
+
+  line-height: 1.75;
+
+}
+
+
+.contact-card-link {
+
+  margin-top: auto;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  color: #003f22;
+
+  text-decoration: none;
+
+  font-size: 13px;
+
+  font-weight: 750;
+
+}
+
+
+.contact-card-link span {
+
+  transition:
+    transform 140ms ease;
+
+}
+
+
+.contact-card-link:hover {
+
+  text-decoration: underline;
+
+  text-underline-offset: 4px;
+
+}
+
+
+.contact-card-link:hover span {
+
+  transform:
+    translateX(3px);
+
+}
+
+
+/* ===============================================================
+   DIRECT CONTACT
+================================================================ */
+
+.contact-direct {
+
+  padding:
+    88px
+    0;
+
+  background: #f6f7f3;
+
+  border-top:
+    1px solid #e1e3de;
+
+  border-bottom:
+    1px solid #e1e3de;
+
+}
+
+
+.contact-direct-inner {
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(320px, 0.75fr);
+
+  align-items: center;
+
+  gap: 80px;
+
+}
+
+
+.contact-direct h2 {
+
+  margin:
+    0
+    0
+    14px;
+
+  color: #003f22;
+
+  font-size:
+    clamp(
+      32px,
+      5vw,
+      50px
+    );
+
+  font-weight: 800;
+
+  line-height: 1.05;
+
+  letter-spacing: -0.045em;
+
+}
+
+
+.contact-direct p {
+
+  max-width: 520px;
+
+  margin: 0;
+
+  color: #676b64;
+
+  font-size: 15px;
+
+  line-height: 1.7;
+
+}
+
+
+/* ===============================================================
+   EMAIL BOX
+================================================================ */
+
+.contact-email {
+
+  padding:
+    24px;
+
+  background: #ffffff;
+
+  border:
+    1px solid #d7dbd4;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+
+  color: #003f22;
+
+  text-decoration: none;
+
+  transition:
+    border-color 140ms ease,
+    transform 140ms ease;
+
+}
+
+
+.contact-email:hover {
+
+  border-color: #003f22;
+
+  transform:
+    translateY(-2px);
+
+}
+
+
+.contact-email-label {
+
+  color: #81857e;
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+
+  text-transform: uppercase;
+
+}
+
+
+.contact-email strong {
+
+  overflow-wrap: anywhere;
+
+  font-size: 18px;
+
+  font-weight: 750;
+
+}
+
+
+/* ===============================================================
+   SAFETY NOTE
+================================================================ */
+
+.contact-note {
+
+  padding:
+    64px
+    0;
+
+  background: #003f22;
+
+}
+
+
+.contact-note-inner {
+
+  display: grid;
+
+  grid-template-columns:
+    180px
+    minmax(0, 650px);
+
+  gap: 56px;
+
+}
+
+
+.contact-note-inner > span {
+
+  color: #b7a52a;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+
+  text-transform: uppercase;
+
+}
+
+
+.contact-note-inner p {
+
+  margin: 0;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.72
+    );
+
+  font-size: 14px;
+
+  line-height: 1.8;
+
+}
+
+
+/* ===============================================================
+   TABLET
+================================================================ */
+
+@media (
+  max-width: 900px
+) {
+
+  .contact-card-grid {
+
+    grid-template-columns: 1fr;
+
+  }
+
+
+  .contact-card {
+
+    min-height: auto;
+
+    border-right: 0;
+
+    border-bottom:
+      1px solid #dfe2dc;
+
+  }
+
+
+  .contact-card:last-child {
+
+    border-bottom: 0;
+
+  }
+
+
+  .contact-card-label {
+
+    margin-bottom: 30px;
+
+  }
+
+
+  .contact-direct-inner {
+
+    grid-template-columns: 1fr;
+
+    gap: 40px;
+
+  }
+
+}
+
+
+/* ===============================================================
+   MOBILE
+================================================================ */
+
+@media (
+  max-width: 640px
+) {
+
+  .contact-container,
+  .contact-direct-inner,
+  .contact-note-inner {
+
+    width:
+      calc(
+        100% - 32px
+      );
+
+  }
+
+
+  .contact-hero {
+
+    padding:
+      64px
+      0;
+
+  }
+
+
+  .contact-hero h1 {
+
+    font-size:
+      clamp(
+        42px,
+        14vw,
+        58px
+      );
+
+  }
+
+
+  .contact-hero p {
+
+    font-size: 15px;
+
+  }
+
+
+  .contact-options {
+
+    padding:
+      68px
+      0
+      76px;
+
+  }
+
+
+  .contact-options-heading {
+
+    margin-bottom: 36px;
+
+  }
+
+
+  .contact-card {
+
+    padding:
+      30px
+      0;
+
+  }
+
+
+  .contact-direct {
+
+    padding:
+      64px
+      0;
+
+  }
+
+
+  .contact-email {
+
+    padding: 20px;
+
+  }
+
+
+  .contact-email strong {
+
+    font-size: 16px;
+
+  }
+
+
+  .contact-note {
+
+    padding:
+      52px
+      0;
+
+  }
+
+
+  .contact-note-inner {
+
+    grid-template-columns: 1fr;
+
+    gap: 18px;
+
+  }
+
+}

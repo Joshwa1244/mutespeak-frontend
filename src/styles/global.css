@@ -1,0 +1,5936 @@
+/* ---------------------------------------------------------------
+   1. VARIABLES & RESET
+---------------------------------------------------------------- */
+
+:root {
+  /* Adapted from the deep green logo background */
+  --navy: #013718;
+  --navy-dk: #052215;
+
+  /* Retained to match the warm yellow shadow on the logo text */
+  --gold: #e8ac1f;
+  --gold-dk: #b9860f;
+
+  /* Adjusted neutral backgrounds to have a slight cool green undertone */
+  --cream: #f4f6f4;
+  --chrome: #c2c7c4;
+  --chrome-lt: #e4e6e4;
+  --chrome-dk: #848c88;
+
+  /* Deepened text colors to a green-black for high contrast */
+  --ink: #16211a;
+  --ink-soft: #4d5952;
+
+  --war: #b23a48;
+  --card: #ffffff;
+  --error: #b23a48;
+
+  /* Layout */
+  --nav-height-mobile: 68px;
+  --sidebar-width: 240px;
+  --sidebar-width-lg: 260px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+
+body {
+
+  margin: 0;
+
+  background: var(--cream);
+
+  color: var(--ink);
+
+  font-family:
+    "Inter",
+    sans-serif;
+
+  -webkit-font-smoothing:
+    antialiased;
+
+}
+
+
+a {
+  color: var(--navy);
+}
+
+
+button {
+  font-family: inherit;
+}
+
+
+/* ---------------------------------------------------------------
+   2. TYPOGRAPHY HELPERS
+---------------------------------------------------------------- */
+
+.pixel {
+
+  font-family:
+    "VT323",
+    monospace;
+
+  letter-spacing: 0.5px;
+
+}
+
+
+.mono {
+
+  font-family:
+    "JetBrains Mono",
+    monospace;
+
+}
+
+
+/* ---------------------------------------------------------------
+   3. ACCESSIBILITY
+---------------------------------------------------------------- */
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+
+  outline:
+    2px solid var(--navy);
+
+  outline-offset: 2px;
+
+}
+
+
+/* ---------------------------------------------------------------
+   4. AUTH SHARED STYLES
+---------------------------------------------------------------- */
+
+.auth-links-row {
+
+  display: flex;
+
+  justify-content: flex-end;
+
+  margin:
+    -6px 0 14px;
+
+}
+
+
+.auth-link {
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  text-decoration: none;
+
+}
+
+
+.auth-link:hover {
+
+  text-decoration: underline;
+
+}
+
+
+.auth-switch {
+
+  margin:
+    18px 0 0;
+
+  text-align: center;
+
+  font-size: 13px;
+
+  color: var(--ink-soft);
+
+}
+
+
+.auth-switch a {
+
+  font-weight: 700;
+
+  text-decoration: none;
+
+}
+
+
+.auth-switch a:hover {
+
+  text-decoration: underline;
+
+}
+
+
+/* ---------------------------------------------------------------
+   5. BANNERS
+---------------------------------------------------------------- */
+
+.banner-success,
+.banner-error,
+.banner-dev {
+
+  font-size: 12.5px;
+
+  padding:
+    9px 11px;
+
+  margin-bottom: 14px;
+
+  border: 1px solid;
+
+  line-height: 1.5;
+
+}
+
+
+.banner-success {
+
+  background: #eaf5ec;
+
+  border-color: #3f8a52;
+
+  color: #2c6b3c;
+
+}
+
+
+.banner-error {
+
+  background: #fbeaec;
+
+  border-color: var(--war);
+
+  color: var(--war);
+
+}
+
+
+.banner-dev {
+
+  background: #fff9e8;
+
+  border-color: var(--gold-dk);
+
+  color: var(--gold-dk);
+
+  font-family:
+    "JetBrains Mono",
+    monospace;
+
+}
+
+
+/* ===============================================================
+   6. APPLICATION SHELL
+   MOBILE FIRST
+================================================================ */
+
+.app-shell {
+
+  min-height: 100dvh;
+
+  background: var(--cream);
+
+}
+
+
+/* ---------------------------------------------------------------
+   HEADER
+---------------------------------------------------------------- */
+
+.app-header {
+
+  position: sticky;
+
+  top: 0;
+
+  z-index: 30;
+
+  background:
+    rgba(244, 241, 232, 0.96);
+
+  border-bottom:
+    1px solid var(--chrome-lt);
+
+  backdrop-filter:
+    blur(10px);
+
+  -webkit-backdrop-filter:
+    blur(10px);
+
+}
+
+
+.app-header-inner {
+
+  width: 100%;
+
+  min-height: 58px;
+
+  padding:
+    0 18px;
+
+  display: flex;
+
+  align-items: center;
+
+}
+
+
+.app-wordmark {
+
+  color: var(--navy-dk);
+
+  font-size: 21px;
+
+  font-weight: 800;
+
+  letter-spacing:
+    -0.5px;
+
+}
+
+
+/* ---------------------------------------------------------------
+   MAIN CONTENT
+---------------------------------------------------------------- */
+
+.app-content {
+
+  width: 100%;
+
+  max-width: 760px;
+
+  margin:
+    0 auto;
+
+  padding:
+
+    22px
+    18px
+    calc(
+      96px +
+      env(safe-area-inset-bottom)
+    );
+
+}
+
+
+/* ---------------------------------------------------------------
+   MOBILE BOTTOM NAVIGATION
+---------------------------------------------------------------- */
+
+.bottom-nav {
+
+  position: fixed;
+
+  left: 0;
+
+  right: 0;
+
+  bottom: 0;
+
+  z-index: 40;
+
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+
+  min-height:
+    var(--nav-height-mobile);
+
+
+  padding-bottom:
+    env(safe-area-inset-bottom);
+
+
+  background:
+    rgba(255, 255, 255, 0.97);
+
+
+  border-top:
+    1px solid var(--chrome-lt);
+
+
+  backdrop-filter:
+    blur(12px);
+
+  -webkit-backdrop-filter:
+    blur(12px);
+
+}
+
+
+.bottom-nav-item {
+
+  position: relative;
+
+
+  min-width: 0;
+
+  min-height:
+    var(--nav-height-mobile);
+
+
+  display: flex;
+
+  flex-direction: column;
+
+
+  align-items: center;
+
+  justify-content: center;
+
+
+  gap: 4px;
+
+
+  color:
+    var(--ink-soft);
+
+
+  text-decoration: none;
+
+
+  -webkit-tap-highlight-color:
+    transparent;
+
+
+  transition:
+
+    color 150ms ease,
+
+    background 150ms ease,
+
+    border-color 150ms ease;
+
+}
+
+
+.bottom-nav-item:hover {
+
+  text-decoration: none;
+
+}
+
+
+.bottom-nav-item.active {
+
+  color:
+    var(--navy);
+
+}
+
+
+/* Gold active indicator */
+
+.bottom-nav-item.active::before {
+
+  content: "";
+
+
+  position: absolute;
+
+
+  top: 0;
+
+  left: 50%;
+
+
+  width: 30px;
+
+  height: 2px;
+
+
+  transform:
+    translateX(-50%);
+
+
+  background:
+    var(--gold);
+
+}
+
+
+/* ---------------------------------------------------------------
+   NAV ICONS
+---------------------------------------------------------------- */
+
+.bottom-nav-icon {
+
+  width: 22px;
+
+  height: 22px;
+
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+
+  flex-shrink: 0;
+
+}
+
+
+.bottom-nav-icon svg {
+
+  width: 22px;
+
+  height: 22px;
+
+
+  display: block;
+
+}
+
+
+.bottom-nav-label {
+
+  font-size: 11px;
+
+  font-weight: 600;
+
+  letter-spacing:
+    0.1px;
+
+}
+
+
+/* ---------------------------------------------------------------
+   HOVER DEVICES
+---------------------------------------------------------------- */
+
+@media (hover: hover) {
+
+  .bottom-nav-item:hover {
+
+    color:
+      var(--navy);
+
+  }
+
+}
+
+
+/* ===============================================================
+   7. SHARED PAGE STYLES
+================================================================ */
+
+.page-heading {
+
+  margin-bottom: 24px;
+
+}
+
+
+.page-title {
+
+  margin:
+    0 0 6px;
+
+
+  color:
+    var(--navy-dk);
+
+
+  font-size: 25px;
+
+  font-weight: 750;
+
+
+  letter-spacing:
+    -0.5px;
+
+}
+
+
+.page-description {
+
+  margin: 0;
+
+
+  color:
+    var(--ink-soft);
+
+
+  font-size: 14px;
+
+  line-height: 1.6;
+
+}
+
+
+/* ===============================================================
+   HOME / FEED
+================================================================ */
+
+.home-page {
+  width: 100%;
+  max-width: 720px;
+}
+
+
+/* ---------------------------------------------------------------
+   POST COMPOSER
+---------------------------------------------------------------- */
+
+.post-composer {
+  margin-bottom: 22px;
+
+  background:
+    var(--card);
+
+  border:
+    1px solid var(--chrome-lt);
+}
+
+
+.post-composer-top {
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 12px;
+
+  padding:
+    16px 16px 12px;
+}
+
+
+.post-avatar {
+  width: 42px;
+  height: 42px;
+
+  flex:
+    0 0 42px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    var(--navy);
+
+  color: white;
+
+  font-size: 15px;
+
+  font-weight: 700;
+}
+
+
+.post-composer textarea {
+  width: 100%;
+
+  min-height: 78px;
+
+  padding: 4px 2px;
+
+  resize: vertical;
+
+  border: 0;
+
+  outline: 0;
+
+  background:
+    transparent;
+
+  color:
+    var(--ink);
+
+  font: inherit;
+
+  font-size: 14px;
+
+  line-height: 1.6;
+}
+
+
+.post-composer textarea::placeholder {
+  color:
+    var(--chrome-dk);
+}
+
+
+.post-composer-actions {
+  min-height: 50px;
+
+  padding:
+    9px 12px
+    9px 16px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: flex-end;
+
+  gap: 14px;
+
+  border-top:
+    1px solid var(--chrome-lt);
+}
+
+
+.post-character-count {
+  color:
+    var(--ink-soft);
+
+  font-size: 11px;
+}
+
+
+.post-submit-button {
+  min-width: 74px;
+
+  min-height: 34px;
+
+  padding:
+    0 17px;
+
+  border:
+    1px solid var(--navy);
+
+  background:
+    var(--navy);
+
+  color: white;
+
+  font-size: 13px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+
+.post-submit-button:hover:not(:disabled) {
+  background:
+    var(--navy-dk);
+
+  border-color:
+    var(--navy-dk);
+}
+
+
+.post-submit-button:disabled {
+  opacity: 0.5;
+
+  cursor: default;
+}
+
+
+.post-error {
+  margin:
+    0 16px 10px
+    70px;
+
+  color:
+    var(--war);
+
+  font-size: 12px;
+}
+
+
+/* ---------------------------------------------------------------
+   FEED
+---------------------------------------------------------------- */
+
+.feed-list {
+  width: 100%;
+}
+
+
+.feed-post {
+  margin-bottom: 12px;
+
+  background:
+    var(--card);
+
+  border:
+    1px solid var(--chrome-lt);
+}
+
+
+/* ---------------------------------------------------------------
+   POST HEADER
+---------------------------------------------------------------- */
+
+.feed-post-header {
+  padding:
+    14px 15px 0;
+
+  display: flex;
+
+  align-items: flex-start;
+
+  justify-content: space-between;
+
+  gap: 14px;
+}
+
+
+.feed-post-author {
+  min-width: 0;
+
+  padding: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 11px;
+
+  border: 0;
+
+  background:
+    transparent;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+
+.feed-author-info {
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+
+.feed-author-info strong {
+  overflow: hidden;
+
+  color:
+    var(--navy-dk);
+
+  font-size: 13.5px;
+
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+.feed-post-author:hover
+.feed-author-info strong {
+  text-decoration: underline;
+}
+
+
+.feed-author-info span {
+  overflow: hidden;
+
+  color:
+    var(--ink-soft);
+
+  font-size: 11.5px;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+.feed-post-time {
+  flex-shrink: 0;
+
+  padding-top: 3px;
+
+  color:
+    var(--ink-soft);
+
+  font-size: 11px;
+}
+
+
+/* ---------------------------------------------------------------
+   POST CONTENT
+---------------------------------------------------------------- */
+
+.feed-post-content {
+  margin: 0;
+
+  padding:
+    15px;
+
+  color:
+    var(--ink);
+
+  font-size: 14px;
+
+  line-height: 1.65;
+
+  white-space: pre-wrap;
+
+  overflow-wrap: anywhere;
+}
+
+
+/* ---------------------------------------------------------------
+   POST ACTIONS
+---------------------------------------------------------------- */
+
+.feed-post-actions {
+  min-height: 44px;
+
+  display: flex;
+
+  align-items: center;
+
+  border-top:
+    1px solid var(--chrome-lt);
+}
+
+/* ---------------------------------------------------------------
+   POST ACTIONS
+---------------------------------------------------------------- */
+
+.feed-post-actions {
+  min-height: 46px;
+
+  display: flex;
+
+  align-items: stretch;
+
+  border-top:
+    1px solid var(--chrome-lt);
+}
+
+
+.post-action-button {
+  min-height: 45px;
+
+  padding:
+    0 16px;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 7px;
+
+  border: 0;
+
+  background:
+    transparent;
+
+  color:
+    var(--ink-soft);
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    color 150ms ease,
+    background 150ms ease;
+}
+
+
+.post-action-button svg {
+  width: 18px;
+
+  height: 18px;
+
+  flex-shrink: 0;
+}
+
+
+.post-action-button:hover:not(:disabled) {
+
+  background:
+    rgba(
+      27,
+      58,
+      107,
+      0.04
+    );
+
+  color:
+    var(--navy);
+
+}
+
+
+/*
+ * Active liked state.
+ *
+ * Keep this subtle instead of using
+ * bright social-media-style effects.
+ */
+
+.post-action-button.liked {
+
+  color:
+    var(--navy);
+
+}
+
+
+.post-action-button:disabled {
+
+  cursor: default;
+
+  opacity: 0.55;
+
+}
+
+
+.post-action-count {
+
+  min-width: 12px;
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  font-variant-numeric:
+    tabular-nums;
+
+}
+/* ---------------------------------------------------------------
+   FEED STATES
+---------------------------------------------------------------- */
+
+.feed-status,
+.feed-end {
+  margin:
+    20px 0;
+
+  text-align: center;
+
+  color:
+    var(--ink-soft);
+
+  font-size: 12px;
+}
+
+
+.feed-empty {
+  padding:
+    34px 20px;
+
+  border:
+    1px solid var(--chrome-lt);
+
+  text-align: center;
+}
+
+
+.feed-empty strong {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color:
+    var(--navy-dk);
+
+  font-size: 14px;
+}
+
+
+.feed-empty p {
+  margin: 0;
+
+  color:
+    var(--ink-soft);
+
+  font-size: 13px;
+
+  line-height: 1.6;
+}
+
+
+/* ===============================================================
+   FEED — MOBILE
+================================================================ */
+
+@media (max-width: 480px) {
+
+  .post-composer-top {
+    padding:
+      14px 13px 10px;
+
+    gap: 10px;
+  }
+
+
+  .post-avatar {
+    width: 38px;
+    height: 38px;
+
+    flex-basis: 38px;
+
+    font-size: 14px;
+  }
+
+
+  .post-composer textarea {
+    min-height: 72px;
+
+    font-size: 13.5px;
+  }
+
+
+  .post-error {
+    margin-left: 61px;
+
+    margin-right: 13px;
+  }
+
+
+  .feed-post-header {
+    padding:
+      13px 13px 0;
+  }
+
+
+  .feed-post-content {
+    padding:
+      14px 13px;
+  }
+
+
+  .feed-post-actions button {
+    flex: 1;
+
+    padding:
+      0 10px;
+  }
+
+}
+
+
+/* ===============================================================
+   FEED — DESKTOP
+================================================================ */
+
+@media (min-width: 1100px) {
+
+  .home-page {
+    max-width: 740px;
+  }
+
+
+  .post-composer {
+    margin-bottom: 24px;
+  }
+
+
+  .feed-post {
+    margin-bottom: 14px;
+  }
+
+}
+
+
+/* ===============================================================
+   9. PROFILE
+================================================================ */
+
+.profile-shell {
+
+  width: 100%;
+
+  max-width: 620px;
+
+  margin:
+    0 auto;
+
+}
+
+
+.profile-header {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 16px;
+
+
+  margin-bottom: 24px;
+
+}
+
+
+.profile-header h1 {
+
+  margin:
+    0 0 4px;
+
+
+  color:
+    var(--navy-dk);
+
+
+  font-size: 24px;
+
+}
+
+
+.profile-header p {
+
+  margin: 0;
+
+
+  color:
+    var(--ink-soft);
+
+
+  font-size: 14px;
+
+}
+
+
+.profile-avatar {
+
+  width: 68px;
+
+  height: 68px;
+
+
+  flex:
+    0 0 68px;
+
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+
+  border-radius: 50%;
+
+
+  background:
+    var(--navy);
+
+
+  color: white;
+
+
+  font-size: 30px;
+
+  font-weight: 700;
+
+}
+
+
+.profile-card {
+
+  background:
+    var(--card);
+
+
+  border:
+    1px solid var(--chrome);
+
+
+  padding: 18px;
+
+
+  margin-bottom: 16px;
+
+}
+
+
+.profile-detail {
+
+  padding:
+    14px 0;
+
+
+  border-bottom:
+    1px solid var(--chrome-lt);
+
+}
+
+
+.profile-detail:first-child {
+
+  padding-top: 0;
+
+}
+
+
+.profile-detail:last-child {
+
+  border-bottom: 0;
+
+  padding-bottom: 0;
+
+}
+
+
+.profile-detail span {
+
+  display: block;
+
+
+  margin-bottom: 5px;
+
+
+  color:
+    var(--ink-soft);
+
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+
+  text-transform: uppercase;
+
+
+  letter-spacing:
+    0.4px;
+
+}
+
+
+.profile-detail strong,
+.profile-detail p {
+
+  margin: 0;
+
+
+  color:
+    var(--ink);
+
+
+  font-size: 14px;
+
+
+  overflow-wrap:
+    anywhere;
+
+}
+
+
+.profile-detail p {
+
+  line-height: 1.6;
+
+}
+
+
+.profile-field {
+
+  display: block;
+
+  margin-bottom: 16px;
+
+}
+
+
+.profile-field > span {
+
+  display: block;
+
+
+  margin-bottom: 6px;
+
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+
+  color:
+    var(--ink);
+
+}
+
+
+.profile-field input,
+.profile-field textarea {
+
+  width: 100%;
+
+
+  padding: 12px;
+
+
+  border:
+    1px solid var(--chrome);
+
+
+  background: white;
+
+
+  color:
+    var(--ink);
+
+
+  font: inherit;
+
+}
+
+
+.profile-field textarea {
+
+  resize: vertical;
+
+  min-height: 110px;
+
+  line-height: 1.5;
+
+}
+
+
+.profile-field input:focus,
+.profile-field textarea:focus {
+
+  outline:
+    2px solid var(--navy);
+
+  outline-offset: 1px;
+
+}
+
+
+.profile-field small {
+
+  display: block;
+
+
+  margin-top: 5px;
+
+
+  text-align: right;
+
+
+  color:
+    var(--ink-soft);
+
+
+  font-size: 11px;
+
+}
+
+
+/* ===============================================================
+   10. LOADING
+================================================================ */
+
+.app-loading {
+
+  min-height: 100dvh;
+
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+
+  padding: 24px;
+
+
+  background:
+    var(--cream);
+
+
+  color:
+    var(--ink-soft);
+
+
+  font-size: 14px;
+
+}
+
+
+/* ===============================================================
+   11. SMALL MOBILE
+   <= 480px
+================================================================ */
+
+@media (max-width: 480px) {
+
+  .app-header-inner {
+
+    min-height: 54px;
+
+
+    padding-left: 15px;
+
+    padding-right: 15px;
+
+  }
+
+
+  .app-wordmark {
+
+    font-size: 20px;
+
+  }
+
+
+  .app-content {
+
+    padding:
+
+      18px
+      14px
+      calc(
+        90px +
+        env(safe-area-inset-bottom)
+      );
+
+  }
+
+
+  .bottom-nav {
+
+    min-height: 64px;
+
+  }
+
+
+  .bottom-nav-item {
+
+    min-height: 64px;
+
+  }
+
+
+  .page-heading {
+
+    margin-bottom: 20px;
+
+  }
+
+
+  .page-title {
+
+    font-size: 23px;
+
+  }
+
+
+  .feed-placeholder {
+
+    padding:
+      22px 16px;
+
+  }
+
+
+  .profile-header {
+
+    gap: 13px;
+
+  }
+
+
+  .profile-avatar {
+
+    width: 58px;
+
+    height: 58px;
+
+
+    flex-basis: 58px;
+
+
+    font-size: 26px;
+
+  }
+
+
+  .profile-header h1 {
+
+    font-size: 21px;
+
+  }
+
+
+  .profile-card {
+
+    padding: 15px;
+
+  }
+
+}
+
+
+/* ===============================================================
+   12. TABLET
+   768px - 1099px
+================================================================ */
+
+@media
+(min-width: 768px)
+and
+(max-width: 1099px) {
+
+  .app-header-inner {
+
+    max-width: 900px;
+
+
+    margin:
+      0 auto;
+
+
+    padding-left: 28px;
+
+    padding-right: 28px;
+
+  }
+
+
+  .app-content {
+
+    max-width: 820px;
+
+
+    padding:
+
+      30px
+      28px
+      calc(
+        100px +
+        env(safe-area-inset-bottom)
+      );
+
+  }
+
+}
+
+
+/* ===============================================================
+   13. DESKTOP
+   >= 1100px
+
+   Header + bottom navigation become
+   a true desktop sidebar.
+================================================================ */
+
+@media (min-width: 1100px) {
+
+  .app-shell {
+
+    min-height: 100vh;
+
+  }
+
+
+  /* -------------------------------------------------------------
+     SIDEBAR BACKGROUND / BRAND
+  ------------------------------------------------------------- */
+
+  .app-header {
+
+    position: fixed;
+
+
+    top: 0;
+
+    left: 0;
+
+    bottom: 0;
+
+
+    width:
+      var(--sidebar-width);
+
+
+    z-index: 40;
+
+
+    border-bottom: 0;
+
+
+    border-right:
+      1px solid var(--chrome-lt);
+
+
+    background:
+      var(--cream);
+
+
+    backdrop-filter: none;
+
+    -webkit-backdrop-filter: none;
+
+  }
+
+
+  .app-header-inner {
+
+    width: 100%;
+
+
+    min-height: auto;
+
+
+    margin: 0;
+
+
+    padding:
+      32px 28px;
+
+
+    display: block;
+
+  }
+
+
+  .app-wordmark {
+
+    font-size: 24px;
+
+    font-weight: 800;
+
+
+    letter-spacing:
+      -0.7px;
+
+  }
+
+
+  /* -------------------------------------------------------------
+     DESKTOP SIDEBAR NAVIGATION
+
+     IMPORTANT:
+     display:flex overrides the mobile display:grid.
+  ------------------------------------------------------------- */
+
+  .bottom-nav {
+
+    position: fixed;
+
+
+    top: 92px;
+
+    left: 0;
+
+    right: auto;
+
+    bottom: auto;
+
+
+    z-index: 50;
+
+
+    width:
+      var(--sidebar-width);
+
+
+    min-height: auto;
+
+
+    padding:
+      12px 16px;
+
+
+    display: flex;
+
+    flex-direction: column;
+
+
+    grid-template-columns: none;
+
+
+    gap: 5px;
+
+
+    background:
+      transparent;
+
+
+    border: 0;
+
+
+    backdrop-filter: none;
+
+    -webkit-backdrop-filter: none;
+
+  }
+
+
+  .bottom-nav-item {
+
+    width: 100%;
+
+
+    min-height: 48px;
+
+
+    padding:
+      0 13px;
+
+
+    flex-direction: row;
+
+
+    justify-content:
+      flex-start;
+
+
+    align-items:
+      center;
+
+
+    gap: 13px;
+
+
+    color:
+      var(--ink-soft);
+
+
+    border:
+      1px solid transparent;
+
+  }
+
+
+  .bottom-nav-item:hover {
+
+    background:
+      rgba(255, 255, 255, 0.55);
+
+
+    color:
+      var(--navy-dk);
+
+  }
+
+
+  .bottom-nav-item.active {
+
+    background:
+      var(--card);
+
+
+    color:
+      var(--navy-dk);
+
+
+    border-color:
+      var(--chrome-lt);
+
+  }
+
+
+  /*
+   * Convert mobile horizontal indicator
+   * into desktop vertical indicator.
+   */
+
+  .bottom-nav-item.active::before {
+
+    top: 50%;
+
+    left: -1px;
+
+
+    width: 3px;
+
+    height: 24px;
+
+
+    transform:
+      translateY(-50%);
+
+
+    background:
+      var(--gold);
+
+  }
+
+
+  .bottom-nav-icon {
+
+    width: 21px;
+
+    height: 21px;
+
+  }
+
+
+  .bottom-nav-icon svg {
+
+    width: 21px;
+
+    height: 21px;
+
+  }
+
+
+  .bottom-nav-label {
+
+    font-size: 14px;
+
+    font-weight: 650;
+
+  }
+
+
+  /* -------------------------------------------------------------
+     DESKTOP CONTENT
+  ------------------------------------------------------------- */
+
+  .app-content {
+
+    width:
+      calc(
+        100% -
+        var(--sidebar-width)
+      );
+
+
+    max-width: 1180px;
+
+
+    margin:
+
+      0
+      auto
+      0
+      var(--sidebar-width);
+
+
+    padding:
+
+      42px
+      48px
+      60px;
+
+  }
+
+
+  /*
+   * Profile remains intentionally narrower
+   * for readability.
+   */
+
+  .profile-shell {
+
+    max-width: 680px;
+
+    margin-left: 0;
+
+  }
+
+}
+
+
+/* ===============================================================
+   14. LARGE DESKTOP
+   >= 1440px
+================================================================ */
+
+@media (min-width: 1440px) {
+
+  .app-header,
+  .bottom-nav {
+
+    width:
+      var(--sidebar-width-lg);
+
+  }
+
+
+  .app-header-inner {
+
+    padding-left: 32px;
+
+    padding-right: 32px;
+
+  }
+
+
+  .bottom-nav {
+
+    padding-left: 20px;
+
+    padding-right: 20px;
+
+  }
+
+
+  .app-content {
+
+    width:
+      calc(
+        100% -
+        var(--sidebar-width-lg)
+      );
+
+
+    max-width: 1280px;
+
+
+    margin-left:
+      var(--sidebar-width-lg);
+
+
+    padding-left: 64px;
+
+    padding-right: 64px;
+
+  }
+
+}
+
+/* ===============================================================
+   SEARCH
+================================================================ */
+
+.search-page {
+  width: 100%;
+  max-width: 680px;
+}
+
+
+/* Search input */
+
+.search-box {
+  width: 100%;
+  height: 48px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding:
+    0 14px;
+
+  background:
+    var(--card);
+
+  border:
+    1px solid var(--chrome);
+}
+
+
+.search-box:focus-within {
+  border-color:
+    var(--navy);
+
+  outline:
+    1px solid var(--navy);
+}
+
+
+.search-box svg {
+  width: 20px;
+  height: 20px;
+
+  flex-shrink: 0;
+
+  color:
+    var(--ink-soft);
+}
+
+
+.search-box input {
+  width: 100%;
+  height: 100%;
+
+  padding: 0;
+
+  border: 0;
+
+  outline: 0;
+
+  background:
+    transparent;
+
+  color:
+    var(--ink);
+
+  font: inherit;
+
+  font-size: 14px;
+}
+
+
+.search-box input::placeholder {
+  color:
+    var(--chrome-dk);
+}
+
+
+/*
+ * Remove browser-specific search decorations
+ * where supported.
+ */
+
+.search-box input::-webkit-search-cancel-button {
+  cursor: pointer;
+}
+
+
+/* ---------------------------------------------------------------
+   STATUS
+---------------------------------------------------------------- */
+
+.search-status {
+  margin:
+    18px 2px;
+
+  color:
+    var(--ink-soft);
+
+  font-size: 13px;
+}
+
+
+/* ---------------------------------------------------------------
+   RESULTS
+---------------------------------------------------------------- */
+
+.search-results {
+  margin-top: 18px;
+
+  background:
+    var(--card);
+
+  border:
+    1px solid var(--chrome-lt);
+}
+
+
+.user-result {
+  position: relative;
+
+  width: 100%;
+
+  min-height: 76px;
+
+  padding:
+    12px 14px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 13px;
+
+  border: 0;
+
+  border-bottom:
+    1px solid var(--chrome-lt);
+
+  background:
+    transparent;
+
+  color:
+    var(--ink);
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 140ms ease;
+}
+
+
+.user-result:last-child {
+  border-bottom: 0;
+}
+
+
+.user-result:hover {
+  background:
+    rgba(244, 241, 232, 0.55);
+}
+
+
+.user-result-avatar {
+  width: 46px;
+  height: 46px;
+
+  flex:
+    0 0 46px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    var(--navy);
+
+  color: white;
+
+  font-size: 18px;
+
+  font-weight: 700;
+}
+
+
+.user-result-info {
+  min-width: 0;
+
+  flex: 1;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+
+.user-result-info strong {
+  overflow: hidden;
+
+  color:
+    var(--navy-dk);
+
+  font-size: 14px;
+
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+.user-result-info span {
+  overflow: hidden;
+
+  color:
+    var(--ink-soft);
+
+  font-size: 12px;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+.user-result-department {
+  font-size: 11px !important;
+}
+
+
+.user-result-chevron {
+  width: 18px;
+  height: 18px;
+
+  flex:
+    0 0 18px;
+
+  color:
+    var(--chrome-dk);
+}
+
+
+/* ---------------------------------------------------------------
+   EMPTY / INITIAL STATE
+---------------------------------------------------------------- */
+
+.search-empty {
+  margin-top: 18px;
+
+  padding:
+    30px 20px;
+
+  border:
+    1px solid var(--chrome-lt);
+
+  text-align: center;
+}
+
+
+.search-empty strong {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color:
+    var(--navy-dk);
+
+  font-size: 14px;
+}
+
+
+.search-empty p {
+  margin: 0;
+
+  color:
+    var(--ink-soft);
+
+  font-size: 13px;
+
+  line-height: 1.6;
+}
+
+
+.search-initial {
+  border-style: dashed;
+}
+
+
+/* ===============================================================
+   SEARCH — MOBILE
+================================================================ */
+
+@media (max-width: 480px) {
+
+  .search-box {
+    height: 46px;
+  }
+
+
+  .search-results {
+    /*
+     * Allow results to use the limited
+     * mobile width efficiently.
+     */
+    margin-left: -2px;
+    margin-right: -2px;
+  }
+
+
+  .user-result {
+    min-height: 72px;
+
+    padding:
+      11px 12px;
+  }
+
+
+  .user-result-avatar {
+    width: 42px;
+    height: 42px;
+
+    flex-basis: 42px;
+
+    font-size: 17px;
+  }
+
+}
+
+
+/* ===============================================================
+   SEARCH — DESKTOP
+================================================================ */
+
+@media (min-width: 1100px) {
+
+  .search-page {
+    max-width: 720px;
+  }
+
+
+  .search-box {
+    height: 50px;
+  }
+
+
+  .user-result {
+    min-height: 80px;
+
+    padding:
+      14px 16px;
+  }
+
+}
+
+/* ===============================================================
+   PUBLIC PROFILE
+================================================================ */
+
+.public-profile-page {
+  width: 100%;
+  max-width: 680px;
+}
+
+
+/* ---------------------------------------------------------------
+   BACK BUTTON
+---------------------------------------------------------------- */
+
+.profile-back-button {
+  min-height: 38px;
+
+  margin:
+    -4px 0 22px;
+
+  padding: 0;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  border: 0;
+
+  background: transparent;
+
+  color:
+    var(--ink-soft);
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+
+.profile-back-button:hover {
+  color:
+    var(--navy);
+}
+
+
+.profile-back-button svg {
+  width: 18px;
+
+  height: 18px;
+}
+
+
+/* ---------------------------------------------------------------
+   HEADER
+---------------------------------------------------------------- */
+
+.public-profile-header {
+  display: flex;
+
+  align-items: center;
+
+  gap: 18px;
+
+  padding-bottom: 26px;
+
+  border-bottom:
+    1px solid var(--chrome-lt);
+}
+
+
+.public-profile-avatar {
+  width: 78px;
+
+  height: 78px;
+
+  flex:
+    0 0 78px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    var(--navy);
+
+  color: white;
+
+  font-size: 24px;
+
+  font-weight: 700;
+
+  letter-spacing:
+    -0.3px;
+}
+
+
+.public-profile-identity {
+  min-width: 0;
+}
+
+
+.public-profile-identity h1 {
+  margin:
+    0 0 6px;
+
+  color:
+    var(--navy-dk);
+
+  font-size: 26px;
+
+  font-weight: 750;
+
+  letter-spacing:
+    -0.5px;
+
+  overflow-wrap: anywhere;
+}
+
+
+.public-profile-identity p {
+  margin: 0;
+
+  color:
+    var(--ink-soft);
+
+  font-size: 14px;
+
+  line-height: 1.5;
+}
+
+
+/* ---------------------------------------------------------------
+   SECTIONS
+---------------------------------------------------------------- */
+
+.public-profile-section {
+  padding:
+    26px 0;
+
+  border-bottom:
+    1px solid var(--chrome-lt);
+}
+
+
+.public-profile-section:last-child {
+  border-bottom: 0;
+}
+
+
+.public-profile-section h2 {
+  margin:
+    0 0 15px;
+
+  color:
+    var(--navy-dk);
+
+  font-size: 15px;
+
+  font-weight: 700;
+
+  letter-spacing:
+    -0.1px;
+}
+
+
+/* ---------------------------------------------------------------
+   ACADEMIC DETAILS
+---------------------------------------------------------------- */
+
+.public-profile-details {
+  background:
+    var(--card);
+
+  border:
+    1px solid var(--chrome-lt);
+}
+
+
+.public-profile-detail {
+  padding:
+    14px 16px;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(120px, 0.7fr)
+    minmax(0, 1.3fr);
+
+  gap: 18px;
+
+  align-items: start;
+
+  border-bottom:
+    1px solid var(--chrome-lt);
+}
+
+
+.public-profile-detail:last-child {
+  border-bottom: 0;
+}
+
+
+.public-profile-detail span {
+  color:
+    var(--ink-soft);
+
+  font-size: 12px;
+
+  font-weight: 600;
+}
+
+
+.public-profile-detail strong {
+  color:
+    var(--ink);
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  overflow-wrap: anywhere;
+}
+
+
+/* ---------------------------------------------------------------
+   BIO
+---------------------------------------------------------------- */
+
+.public-profile-bio {
+  padding:
+    16px;
+
+  background:
+    var(--card);
+
+  border:
+    1px solid var(--chrome-lt);
+}
+
+
+.public-profile-bio p {
+  margin: 0;
+
+  color:
+    var(--ink);
+
+  font-size: 14px;
+
+  line-height: 1.7;
+
+  white-space: pre-wrap;
+
+  overflow-wrap: anywhere;
+}
+
+
+.public-profile-bio
+.public-profile-empty-text {
+  color:
+    var(--ink-soft);
+}
+
+
+/* ---------------------------------------------------------------
+   ERROR
+---------------------------------------------------------------- */
+
+.public-profile-error {
+  padding:
+    28px 20px;
+
+  background:
+    var(--card);
+
+  border:
+    1px solid var(--chrome-lt);
+}
+
+
+.public-profile-error h1 {
+  margin:
+    0 0 8px;
+
+  color:
+    var(--navy-dk);
+
+  font-size: 19px;
+}
+
+
+.public-profile-error p {
+  margin: 0;
+
+  color:
+    var(--ink-soft);
+
+  font-size: 13px;
+
+  line-height: 1.6;
+}
+
+
+/* ---------------------------------------------------------------
+   LOADING SKELETON
+---------------------------------------------------------------- */
+
+.public-profile-loading {
+  display: flex;
+
+  align-items: center;
+
+  gap: 18px;
+
+  padding-top: 38px;
+}
+
+
+.profile-avatar-skeleton {
+  width: 78px;
+
+  height: 78px;
+
+  flex:
+    0 0 78px;
+
+  border-radius: 50%;
+
+  background:
+    var(--chrome-lt);
+}
+
+
+.profile-text-skeleton {
+  width: 220px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 10px;
+}
+
+
+.profile-text-skeleton span {
+  display: block;
+
+  height: 12px;
+
+  background:
+    var(--chrome-lt);
+}
+
+
+.profile-text-skeleton span:first-child {
+  width: 75%;
+
+  height: 18px;
+}
+
+
+.profile-text-skeleton span:last-child {
+  width: 55%;
+}
+
+
+/* ===============================================================
+   PUBLIC PROFILE — MOBILE
+================================================================ */
+
+@media (max-width: 480px) {
+
+  .profile-back-button {
+    margin-bottom: 16px;
+  }
+
+
+  .public-profile-header {
+    gap: 14px;
+
+    padding-bottom: 22px;
+  }
+
+
+  .public-profile-avatar {
+    width: 64px;
+
+    height: 64px;
+
+    flex-basis: 64px;
+
+    font-size: 20px;
+  }
+
+
+  .public-profile-identity h1 {
+    font-size: 22px;
+  }
+
+
+  .public-profile-identity p {
+    font-size: 13px;
+  }
+
+
+  .public-profile-section {
+    padding:
+      22px 0;
+  }
+
+
+  .public-profile-detail {
+    /*
+     * Stack labels and values on narrow
+     * screens instead of squeezing them.
+     */
+
+    grid-template-columns: 1fr;
+
+    gap: 5px;
+
+    padding:
+      13px 14px;
+  }
+
+
+  .public-profile-bio {
+    padding: 14px;
+  }
+
+}
+
+
+/* ===============================================================
+   PUBLIC PROFILE — DESKTOP
+================================================================ */
+
+@media (min-width: 1100px) {
+
+  .public-profile-page {
+    max-width: 720px;
+  }
+
+
+  .public-profile-avatar {
+    width: 86px;
+
+    height: 86px;
+
+    flex-basis: 86px;
+
+    font-size: 27px;
+  }
+
+
+  .public-profile-identity h1 {
+    font-size: 29px;
+  }
+
+}
+
+/* ===============================================================
+   COMMENT OVERLAY
+================================================================ */
+
+.comment-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 100;
+
+  display: flex;
+
+  justify-content: flex-end;
+
+  background:
+    rgba(18, 39, 71, 0.18);
+}
+
+
+/* ===============================================================
+   COMMENT PANEL
+================================================================ */
+
+.comment-panel {
+  width: min(440px, 100%);
+
+  height: 100dvh;
+
+  display: flex;
+
+  flex-direction: column;
+
+  background:
+    var(--cream);
+
+  border-left:
+    1px solid var(--chrome-lt);
+
+  box-shadow:
+    -12px 0 35px
+    rgba(18, 39, 71, 0.08);
+}
+
+
+/* ---------------------------------------------------------------
+   HEADER
+---------------------------------------------------------------- */
+
+.comment-panel-header {
+  min-height: 68px;
+
+  padding:
+    13px 18px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 16px;
+
+  background:
+    var(--card);
+
+  border-bottom:
+    1px solid var(--chrome-lt);
+}
+
+
+.comment-panel-header h2 {
+  margin:
+    0 0 3px;
+
+  color:
+    var(--navy-dk);
+
+  font-size: 17px;
+
+  font-weight: 750;
+}
+
+
+.comment-panel-header span {
+  color:
+    var(--ink-soft);
+
+  font-size: 11px;
+}
+
+
+.comment-close-button {
+  width: 38px;
+
+  height: 38px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border:
+    1px solid transparent;
+
+  background:
+    transparent;
+
+  color:
+    var(--ink-soft);
+
+  cursor: pointer;
+}
+
+
+.comment-close-button:hover {
+  background:
+    var(--cream);
+
+  border-color:
+    var(--chrome-lt);
+
+  color:
+    var(--navy);
+}
+
+
+.comment-close-button svg {
+  width: 20px;
+
+  height: 20px;
+}
+
+
+/* ---------------------------------------------------------------
+   ORIGINAL POST CONTEXT
+---------------------------------------------------------------- */
+
+.comment-post-context {
+  padding:
+    15px 18px;
+
+  background:
+    var(--card);
+
+  border-bottom:
+    1px solid var(--chrome-lt);
+}
+
+
+.comment-post-author {
+  padding: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  border: 0;
+
+  background:
+    transparent;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+
+.comment-post-author > div:last-child {
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+
+.comment-post-author strong {
+  color:
+    var(--navy-dk);
+
+  font-size: 12.5px;
+}
+
+
+.comment-post-author span {
+  color:
+    var(--ink-soft);
+
+  font-size: 10.5px;
+}
+
+
+.comment-post-context > p {
+  margin:
+    12px 0 0;
+
+  color:
+    var(--ink);
+
+  font-size: 13px;
+
+  line-height: 1.6;
+
+  white-space: pre-wrap;
+
+  overflow-wrap: anywhere;
+}
+
+
+/* ===============================================================
+   COMMENTS
+================================================================ */
+
+.comment-list {
+  flex: 1;
+
+  min-height: 0;
+
+  padding:
+    16px 18px;
+
+  overflow-y: auto;
+}
+
+
+.comment-item {
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 10px;
+
+  margin-bottom: 18px;
+}
+
+
+.comment-avatar-button {
+  padding: 0;
+
+  flex-shrink: 0;
+
+  border: 0;
+
+  background:
+    transparent;
+
+  cursor: pointer;
+}
+
+
+.comment-avatar {
+  width: 34px;
+
+  height: 34px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    var(--navy);
+
+  color: white;
+
+  font-size: 11px;
+
+  font-weight: 700;
+}
+
+
+.comment-body {
+  min-width: 0;
+
+  flex: 1;
+
+  padding:
+    10px 12px;
+
+  background:
+    var(--card);
+
+  border:
+    1px solid var(--chrome-lt);
+}
+
+
+.comment-meta {
+  margin-bottom: 5px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 12px;
+}
+
+
+.comment-meta button {
+  min-width: 0;
+
+  padding: 0;
+
+  overflow: hidden;
+
+  border: 0;
+
+  background:
+    transparent;
+
+  color:
+    var(--navy-dk);
+
+  font-size: 11.5px;
+
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+}
+
+
+.comment-meta button:hover {
+  text-decoration: underline;
+}
+
+
+.comment-meta time {
+  flex-shrink: 0;
+
+  color:
+    var(--ink-soft);
+
+  font-size: 9.5px;
+}
+
+
+.comment-body p {
+  margin: 0;
+
+  color:
+    var(--ink);
+
+  font-size: 12.5px;
+
+  line-height: 1.55;
+
+  white-space: pre-wrap;
+
+  overflow-wrap: anywhere;
+}
+
+
+/* ---------------------------------------------------------------
+   COMMENT STATES
+---------------------------------------------------------------- */
+
+.comment-status,
+.comment-error {
+  margin:
+    18px 0;
+
+  color:
+    var(--ink-soft);
+
+  font-size: 12px;
+
+  text-align: center;
+}
+
+
+.comment-error {
+  color:
+    var(--war);
+}
+
+
+.comment-empty {
+  padding:
+    35px 16px;
+
+  text-align: center;
+}
+
+
+.comment-empty strong {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color:
+    var(--navy-dk);
+
+  font-size: 13px;
+}
+
+
+.comment-empty p {
+  margin: 0;
+
+  color:
+    var(--ink-soft);
+
+  font-size: 12px;
+}
+
+
+/* ===============================================================
+   COMMENT COMPOSER
+================================================================ */
+
+.comment-composer {
+  padding:
+    12px 14px
+    calc(
+      12px +
+      env(safe-area-inset-bottom)
+    );
+
+  background:
+    var(--card);
+
+  border-top:
+    1px solid var(--chrome-lt);
+}
+
+
+.comment-input-row {
+  display: flex;
+
+  align-items: flex-end;
+
+  gap: 9px;
+}
+
+
+.comment-input-row textarea {
+  min-width: 0;
+
+  flex: 1;
+
+  min-height: 42px;
+
+  max-height: 120px;
+
+  padding:
+    10px 11px;
+
+  resize: none;
+
+  border:
+    1px solid var(--chrome-lt);
+
+  outline: 0;
+
+  background:
+    var(--cream);
+
+  color:
+    var(--ink);
+
+  font: inherit;
+
+  font-size: 12.5px;
+
+  line-height: 1.5;
+}
+
+
+.comment-input-row textarea:focus {
+  border-color:
+    var(--navy);
+}
+
+
+.comment-input-row button {
+  min-height: 42px;
+
+  padding:
+    0 16px;
+
+  border:
+    1px solid var(--navy);
+
+  background:
+    var(--navy);
+
+  color: white;
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+
+.comment-input-row button:disabled {
+  opacity: 0.5;
+
+  cursor: default;
+}
+
+
+.comment-character-count {
+  display: block;
+
+  margin-top: 5px;
+
+  color:
+    var(--ink-soft);
+
+  font-size: 9.5px;
+
+  text-align: right;
+}
+
+
+/* ===============================================================
+   COMMENT PANEL — MOBILE BOTTOM SHEET
+================================================================ */
+
+@media (max-width: 767px) {
+
+  .comment-overlay {
+    align-items: flex-end;
+
+    justify-content: stretch;
+  }
+
+
+  .comment-panel {
+    width: 100%;
+
+    height: min(
+      82dvh,
+      720px
+    );
+
+    border-left: 0;
+
+    border-top:
+      1px solid var(--chrome-lt);
+
+    box-shadow:
+      0 -12px 35px
+      rgba(18, 39, 71, 0.1);
+  }
+
+
+  /*
+   * Small visual handle indicating
+   * a bottom sheet.
+   */
+
+  .comment-panel::before {
+    content: "";
+
+    width: 38px;
+
+    height: 3px;
+
+    margin:
+      7px auto 0;
+
+    flex-shrink: 0;
+
+    background:
+      var(--chrome);
+
+    border-radius: 10px;
+  }
+
+
+  .comment-panel-header {
+    min-height: 57px;
+
+    padding:
+      8px 14px;
+  }
+
+
+  .comment-post-context {
+    padding:
+      12px 14px;
+  }
+
+
+  .comment-list {
+    padding:
+      14px;
+  }
+
+}
+
+/* ===============================================================
+   PROFILE POSTS
+================================================================ */
+
+.profile-posts-section {
+  margin-top: 42px;
+  padding-top: 28px;
+
+  border-top:
+    1px solid var(--chrome-lt);
+}
+
+
+.profile-posts-heading {
+  margin-bottom: 18px;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+
+.profile-posts-heading h2 {
+  margin: 0 0 5px;
+
+  color: var(--navy-dk);
+
+  font-size: 20px;
+  font-weight: 750;
+
+  letter-spacing: -0.3px;
+}
+
+
+.profile-posts-heading p {
+  margin: 0;
+
+  color: var(--ink-soft);
+
+  font-size: 12px;
+}
+
+
+.profile-post-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 14px;
+}
+
+
+/* ---------------------------------------------------------------
+   POST HEADER + DELETE
+---------------------------------------------------------------- */
+
+.profile-post-header-actions {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  flex-shrink: 0;
+}
+
+
+.profile-post-delete {
+  padding: 5px 8px;
+
+  border:
+    1px solid transparent;
+
+  background:
+    transparent;
+
+  color:
+    var(--ink-soft);
+
+  font-size: 10.5px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    color 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+
+.profile-post-delete:hover {
+  color:
+    var(--war);
+
+  border-color:
+    rgba(178, 58, 72, 0.2);
+
+  background:
+    rgba(178, 58, 72, 0.04);
+}
+
+
+.profile-post-delete:disabled {
+  opacity: 0.5;
+
+  cursor: default;
+}
+
+
+/* ---------------------------------------------------------------
+   PROFILE ACTIONS
+---------------------------------------------------------------- */
+
+.profile-actions {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+
+/* ---------------------------------------------------------------
+   LOAD MORE
+---------------------------------------------------------------- */
+
+.profile-load-more {
+  padding: 18px 0 4px;
+
+  display: flex;
+
+  justify-content: center;
+}
+
+
+.profile-load-more-button {
+  min-height: 38px;
+
+  padding: 0 18px;
+
+  border:
+    1px solid var(--chrome);
+
+  background:
+    transparent;
+
+  color:
+    var(--navy-dk);
+
+  font-size: 11.5px;
+  font-weight: 650;
+
+  cursor: pointer;
+
+  transition:
+    background 150ms ease,
+    border-color 150ms ease;
+}
+
+
+.profile-load-more-button:hover {
+  background:
+    var(--card);
+
+  border-color:
+    var(--navy);
+}
+
+
+.profile-load-more-button:disabled {
+  opacity: 0.5;
+
+  cursor: default;
+}
+
+
+/* ===============================================================
+   PROFILE POSTS — MOBILE
+================================================================ */
+
+@media (max-width: 600px) {
+
+  .profile-posts-section {
+    margin-top: 32px;
+
+    padding-top: 22px;
+  }
+
+
+  .profile-posts-heading h2 {
+    font-size: 18px;
+  }
+
+
+  .profile-post-header-actions {
+    gap: 7px;
+  }
+
+
+  .profile-post-delete {
+    padding:
+      5px 4px;
+  }
+
+}
+
+/* ===============================================================
+   PUBLIC PROFILE POSTS
+================================================================ */
+
+.public-profile-posts-section {
+  margin-top: 8px;
+}
+
+
+.public-profile-posts-heading {
+  margin-bottom: 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+}
+
+
+.public-profile-posts-heading h2 {
+  margin: 0;
+}
+
+
+.public-profile-posts-heading span {
+  color: var(--ink-soft);
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+
+.public-profile-post-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 14px;
+}
+
+
+@media (max-width: 600px) {
+
+  .public-profile-posts-heading {
+    margin-bottom: 13px;
+  }
+
+}
+
+/* ===============================================================
+   INFINITE FEED
+================================================================ */
+
+.feed-pagination-status {
+  min-height: 64px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
+
+  color: var(--ink-soft);
+
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+
+.feed-loading-dot {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: var(--navy);
+
+  animation:
+    feed-loading-pulse
+    900ms ease-in-out
+    infinite alternate;
+}
+
+
+@keyframes feed-loading-pulse {
+
+  from {
+    opacity: 0.25;
+    transform: scale(0.8);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+}
+
+
+.feed-end {
+  margin: 0;
+
+  padding: 24px 0 12px;
+
+  text-align: center;
+
+  color: var(--ink-soft);
+
+  font-size: 11px;
+}
+
+/* ===============================================================
+   PROFILE POST OWNER ACTIONS
+================================================================ */
+
+.profile-post-owner-actions {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+}
+
+
+.profile-post-edit-button,
+.profile-post-delete-button,
+.profile-post-cancel-button {
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  font: inherit;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+
+.profile-post-edit-button {
+  color: var(--navy);
+}
+
+
+.profile-post-delete-button {
+  color: var(--war);
+}
+
+
+.profile-post-edit-button:disabled,
+.profile-post-delete-button:disabled,
+.profile-post-cancel-button:disabled {
+  opacity: 0.45;
+
+  cursor: default;
+}
+
+
+/* ===============================================================
+   INLINE POST EDITOR
+================================================================ */
+
+.profile-post-edit {
+  margin-top: 12px;
+}
+
+
+.profile-post-edit textarea {
+  width: 100%;
+
+  min-height: 110px;
+
+  padding: 12px 13px;
+
+  resize: vertical;
+
+  border:
+    1px solid var(--chrome);
+
+  background:
+    var(--card);
+
+  color:
+    var(--ink);
+
+  font: inherit;
+
+  font-size: 14px;
+
+  line-height: 1.55;
+
+  outline: none;
+}
+
+
+.profile-post-edit textarea:focus {
+  border-color:
+    var(--navy);
+}
+
+
+.profile-post-edit-meta {
+  margin-top: 5px;
+
+  display: flex;
+  justify-content: flex-end;
+
+  color:
+    var(--ink-soft);
+
+  font-size: 10.5px;
+}
+
+
+.profile-post-edit-actions {
+  margin-top: 10px;
+
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+
+  gap: 16px;
+}
+
+
+.profile-post-cancel-button {
+  color:
+    var(--ink-soft);
+}
+
+
+.profile-post-save-button {
+  min-height: 34px;
+
+  padding:
+    0 16px;
+
+  border:
+    1px solid var(--navy);
+
+  background:
+    var(--navy);
+
+  color:
+    white;
+
+  font: inherit;
+
+  font-size: 12px;
+  font-weight: 650;
+
+  cursor: pointer;
+}
+
+
+.profile-post-save-button:disabled {
+  opacity: 0.5;
+
+  cursor: default;
+}
+
+/* ===============================================================
+   COMMENT META WITH OWNER ACTION
+================================================================ */
+
+.comment-meta {
+  margin-bottom: 5px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+}
+
+
+.comment-meta-user {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+}
+
+
+/*
+ * Author name.
+ *
+ * Explicit selector prevents the delete
+ * action from inheriting author-button styles.
+ */
+
+.comment-meta-user > button {
+  min-width: 0;
+
+  padding: 0;
+
+  overflow: hidden;
+
+  border: 0;
+
+  background:
+    transparent;
+
+  color:
+    var(--navy-dk);
+
+  font: inherit;
+
+  font-size: 11.5px;
+
+  font-weight: 700;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
+
+  cursor: pointer;
+}
+
+
+.comment-meta-user > button:hover {
+  text-decoration:
+    underline;
+}
+
+
+.comment-meta-user time {
+  flex-shrink: 0;
+
+  color:
+    var(--ink-soft);
+
+  font-size: 9.5px;
+}
+
+
+/* ===============================================================
+   COMMENT DELETE ACTION
+================================================================ */
+
+.comment-delete-button {
+  flex-shrink: 0;
+
+  min-height: 28px;
+
+  padding:
+    0 8px;
+
+  border:
+    1px solid transparent;
+
+  background:
+    transparent;
+
+  color:
+    var(--ink-soft);
+
+  font: inherit;
+
+  font-size: 10.5px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    color 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease,
+    opacity 150ms ease;
+}
+
+
+.comment-delete-button:hover:not(:disabled) {
+  color:
+    var(--war);
+
+  border-color:
+    rgba(178, 58, 72, 0.2);
+
+  background:
+    rgba(178, 58, 72, 0.04);
+
+  text-decoration:
+    none;
+}
+
+
+.comment-delete-button:disabled {
+  opacity: 0.45;
+
+  cursor: default;
+}
+
+
+/* ===============================================================
+   COMMENT DELETE — MOBILE
+================================================================ */
+
+@media (max-width: 480px) {
+
+  .comment-delete-button {
+    min-height: 30px;
+
+    padding:
+      0 6px;
+
+    font-size: 10px;
+  }
+
+}
+/* ===============================================================
+   PROFILE POST EDIT ACTION
+================================================================ */
+
+.profile-post-edit {
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: var(--navy);
+
+  font: inherit;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.profile-post-edit:hover {
+  text-decoration: underline;
+}
+
+.profile-post-edit:disabled {
+  opacity: 0.45;
+  cursor: default;
+  text-decoration: none;
+}
+
+
+/* ===============================================================
+   INLINE POST EDITOR
+================================================================ */
+
+.profile-post-edit-area {
+  margin-top: 14px;
+}
+
+.profile-post-edit-textarea {
+  display: block;
+
+  width: 100%;
+  min-height: 110px;
+
+  padding: 12px 14px;
+
+  border: 1px solid var(--chrome);
+  border-radius: 0;
+
+  background: var(--card);
+
+  color: var(--ink);
+
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+
+  resize: vertical;
+
+  outline: none;
+
+  transition:
+    border-color 150ms ease;
+}
+
+.profile-post-edit-textarea:focus {
+  border-color: var(--navy);
+}
+
+.profile-post-edit-meta {
+  display: flex;
+  justify-content: flex-end;
+
+  margin-top: 5px;
+
+  color: var(--ink-soft);
+
+  font-size: 10.5px;
+}
+
+.profile-post-edit-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 14px;
+
+  margin-top: 10px;
+}
+
+.profile-post-edit-cancel {
+  padding: 8px 12px;
+
+  border: 0;
+
+  background: transparent;
+
+  color: var(--ink-soft);
+
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.profile-post-edit-save {
+  min-width: 72px;
+
+  padding: 8px 16px;
+
+  border: 1px solid var(--navy);
+
+  background: var(--navy);
+
+  color: #ffffff;
+
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+
+  cursor: pointer;
+}
+
+.profile-post-edit-save:disabled,
+.profile-post-edit-cancel:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ===============================================================
+   USER AVATAR
+================================================================ */
+
+.user-avatar {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  overflow: hidden;
+
+  border-radius: 50%;
+
+  background: var(--navy-dk);
+
+  color: #ffffff;
+
+  border: 1px solid var(--chrome-lt);
+}
+
+
+/* ---------------------------------------------------------------
+   IMAGE
+---------------------------------------------------------------- */
+
+.user-avatar-image {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+  object-position: center;
+}
+
+
+/* ---------------------------------------------------------------
+   INITIALS FALLBACK
+---------------------------------------------------------------- */
+
+.user-avatar-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+
+  font-weight: 700;
+
+  line-height: 1;
+
+  user-select: none;
+}
+
+
+/* ---------------------------------------------------------------
+   SMALL
+   Comments / compact search results
+---------------------------------------------------------------- */
+
+.user-avatar-small {
+  width: 34px;
+  height: 34px;
+}
+
+.user-avatar-small
+.user-avatar-initials {
+  font-size: 11px;
+}
+
+
+/* ---------------------------------------------------------------
+   MEDIUM
+   Feed posts / search
+---------------------------------------------------------------- */
+
+.user-avatar-medium {
+  width: 42px;
+  height: 42px;
+}
+
+.user-avatar-medium
+.user-avatar-initials {
+  font-size: 13px;
+}
+
+
+/* ---------------------------------------------------------------
+   LARGE
+   Profile pages
+---------------------------------------------------------------- */
+
+.user-avatar-large {
+  width: 88px;
+  height: 88px;
+}
+
+.user-avatar-large
+.user-avatar-initials {
+  font-size: 25px;
+}
+
+/* ===============================================================
+   PROFILE PICTURE
+================================================================ */
+
+.profile-picture-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 10px;
+
+  flex-shrink: 0;
+}
+
+
+/* ---------------------------------------------------------------
+   PROFILE HEADER IDENTITY
+---------------------------------------------------------------- */
+
+.profile-header-identity {
+  min-width: 0;
+}
+
+.profile-header-identity h1 {
+  margin: 0;
+}
+
+.profile-header-identity p {
+  margin-top: 5px;
+}
+
+
+/* ---------------------------------------------------------------
+   PROFILE PICTURE ACTIONS
+---------------------------------------------------------------- */
+
+.profile-picture-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-wrap: wrap;
+
+  gap: 6px;
+}
+
+
+/* ---------------------------------------------------------------
+   SHARED PROFILE PICTURE BUTTON
+---------------------------------------------------------------- */
+
+.profile-picture-change,
+.profile-picture-remove,
+.profile-picture-save,
+.profile-picture-cancel {
+  appearance: none;
+
+  min-height: 32px;
+
+  padding: 6px 11px;
+
+  border-radius: 8px;
+
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+
+  cursor: pointer;
+
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    opacity 150ms ease,
+    transform 100ms ease;
+}
+
+
+/* ---------------------------------------------------------------
+   ADD / CHANGE PHOTO
+---------------------------------------------------------------- */
+
+.profile-picture-change {
+  border: 1px solid var(--chrome-lt);
+
+  background: transparent;
+
+  color: var(--navy-dk);
+}
+
+.profile-picture-change:hover:not(:disabled) {
+  border-color: var(--navy-dk);
+
+  background: rgba(13, 27, 42, 0.05);
+}
+
+
+/* ---------------------------------------------------------------
+   SAVE PHOTO
+---------------------------------------------------------------- */
+
+.profile-picture-save {
+  border: 1px solid var(--navy-dk);
+
+  background: var(--navy-dk);
+
+  color: #ffffff;
+}
+
+.profile-picture-save:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+
+/* ---------------------------------------------------------------
+   CANCEL
+---------------------------------------------------------------- */
+
+.profile-picture-cancel {
+  border: 1px solid var(--chrome-lt);
+
+  background: transparent;
+
+  color: var(--navy-dk);
+}
+
+.profile-picture-cancel:hover:not(:disabled) {
+  border-color: var(--navy-dk);
+
+  background: rgba(13, 27, 42, 0.05);
+}
+
+
+/* ---------------------------------------------------------------
+   REMOVE PHOTO
+---------------------------------------------------------------- */
+
+.profile-picture-remove {
+  border: 1px solid rgba(160, 40, 40, 0.28);
+
+  background: transparent;
+
+  color: #9f2929;
+}
+
+.profile-picture-remove:hover:not(:disabled) {
+  border-color: #9f2929;
+
+  background: rgba(159, 41, 41, 0.06);
+}
+
+
+/* ---------------------------------------------------------------
+   BUTTON INTERACTION
+---------------------------------------------------------------- */
+
+.profile-picture-change:active:not(:disabled),
+.profile-picture-remove:active:not(:disabled),
+.profile-picture-save:active:not(:disabled),
+.profile-picture-cancel:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.profile-picture-change:disabled,
+.profile-picture-remove:disabled,
+.profile-picture-save:disabled,
+.profile-picture-cancel:disabled {
+  opacity: 0.55;
+
+  cursor: not-allowed;
+}
+
+
+/* ===============================================================
+   USER AVATAR
+================================================================ */
+
+.user-avatar {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  overflow: hidden;
+
+  border-radius: 50%;
+
+  background: var(--navy-dk);
+
+  color: #ffffff;
+
+  border: 1px solid var(--chrome-lt);
+}
+
+
+/* ---------------------------------------------------------------
+   AVATAR IMAGE
+---------------------------------------------------------------- */
+
+.user-avatar-image {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+  object-position: center;
+
+  border-radius: inherit;
+}
+
+
+/* ---------------------------------------------------------------
+   AVATAR INITIALS
+---------------------------------------------------------------- */
+
+.user-avatar-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  height: 100%;
+
+  font-weight: 700;
+
+  line-height: 1;
+
+  user-select: none;
+}
+
+
+/* ---------------------------------------------------------------
+   SMALL AVATAR
+   Comments / compact UI
+---------------------------------------------------------------- */
+
+.user-avatar-small {
+  width: 34px;
+  height: 34px;
+}
+
+.user-avatar-small
+.user-avatar-initials {
+  font-size: 11px;
+}
+
+
+/* ---------------------------------------------------------------
+   MEDIUM AVATAR
+   Feed posts
+---------------------------------------------------------------- */
+
+.user-avatar-medium {
+  width: 42px;
+  height: 42px;
+}
+
+.user-avatar-medium
+.user-avatar-initials {
+  font-size: 13px;
+}
+
+
+/* ---------------------------------------------------------------
+   LARGE AVATAR
+   Profile header
+---------------------------------------------------------------- */
+
+.user-avatar-large {
+  width: 92px;
+  height: 92px;
+
+  border-width: 2px;
+}
+
+.user-avatar-large
+.user-avatar-initials {
+  font-size: 26px;
+}
+
+
+/* ===============================================================
+   PROFILE HEADER WITH PICTURE
+================================================================ */
+
+.profile-header {
+  display: flex;
+  align-items: center;
+
+  gap: 20px;
+}
+
+
+/* ===============================================================
+   RESPONSIVE PROFILE PICTURE
+================================================================ */
+
+@media (max-width: 640px) {
+
+  .profile-header {
+    align-items: flex-start;
+
+    gap: 14px;
+  }
+
+
+  .user-avatar-large {
+    width: 76px;
+    height: 76px;
+  }
+
+
+  .user-avatar-large
+  .user-avatar-initials {
+    font-size: 22px;
+  }
+
+
+  .profile-picture-actions {
+    max-width: 110px;
+  }
+
+
+  .profile-picture-change,
+  .profile-picture-remove,
+  .profile-picture-save,
+  .profile-picture-cancel {
+    min-height: 30px;
+
+    padding: 5px 9px;
+
+    font-size: 11px;
+  }
+
+}
+
+/* ===============================================================
+   AUTHENTICATED APP HEADER
+================================================================ */
+
+.app-header {
+  position: sticky;
+  top: 0;
+
+  z-index: 100;
+
+  width: 100%;
+  height: 72px;
+
+  background: #ffffff;
+
+  border-bottom:
+    1px solid #e7e7e2;
+}
+
+
+/* ---------------------------------------------------------------
+   HEADER INNER
+---------------------------------------------------------------- */
+
+.app-header-inner {
+  width:
+    min(
+      1180px,
+      calc(100% - 48px)
+    );
+
+  height: 100%;
+
+  margin: 0 auto;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+}
+
+
+/* ---------------------------------------------------------------
+   MUTESPEAK WORDMARK
+---------------------------------------------------------------- */
+
+.app-wordmark {
+  color: #003f22;
+
+  font-size: 27px;
+  font-weight: 800;
+
+  line-height: 1;
+
+  letter-spacing: -1.4px;
+
+  white-space: nowrap;
+}
+
+
+.app-wordmark-button {
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  font: inherit;
+
+  color: #003f22;
+
+  cursor: pointer;
+
+  text-align: left;
+}
+
+
+.app-wordmark-button:hover {
+  opacity: 0.82;
+}
+
+
+.app-wordmark-button:focus-visible {
+  outline:
+    2px solid #003f22;
+
+  outline-offset: 6px;
+
+  border-radius: 2px;
+}
+
+
+/* ===============================================================
+   APP CONTENT
+
+   Header and content are now visually separate sections.
+================================================================ */
+
+.app-content {
+  width: 100%;
+
+  flex: 1;
+
+  background: #ffffff;
+}
+
+
+/* ===============================================================
+   MOBILE
+================================================================ */
+
+@media (
+  max-width: 760px
+) {
+
+  .app-header {
+    height: 64px;
+  }
+
+
+  .app-header-inner {
+    width:
+      calc(
+        100% - 32px
+      );
+  }
+
+
+  .app-wordmark {
+    font-size: 24px;
+  }
+
+}
+
+
+/* ===============================================================
+   VERY SMALL MOBILE
+================================================================ */
+
+@media (
+  max-width: 420px
+) {
+
+  .app-header-inner {
+    width:
+      calc(
+        100% - 24px
+      );
+  }
+
+
+  .app-wordmark {
+    font-size: 21px;
+  }
+
+}
+
+/* ===============================================================
+   LOGIN PAGE — TWO COLUMN LAYOUT
+================================================================ */
+
+.login-page-layout {
+
+  width:
+    min(
+      1040px,
+      calc(100% - 48px)
+    );
+
+  margin:
+    0 auto;
+
+  padding:
+    64px 0 72px;
+
+  flex: 1;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(360px, 430px);
+
+  align-items:
+    center;
+
+  gap:
+    88px;
+
+}
+
+
+/* ===============================================================
+   LOGIN — ABOUT MUTESPEAK
+================================================================ */
+
+.login-about-section {
+
+  max-width:
+    500px;
+
+}
+
+
+.login-about-label {
+
+  display:
+    block;
+
+  margin-bottom:
+    14px;
+
+  color:
+    #9a8d2c;
+
+  font-size:
+    11px;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    0.1em;
+
+  text-transform:
+    uppercase;
+
+}
+
+
+.login-about-section h1 {
+
+  max-width:
+    480px;
+
+  margin:
+    0
+    0
+    18px;
+
+  color:
+    #003f22;
+
+  font-size:
+    clamp(
+      32px,
+      4vw,
+      46px
+    );
+
+  font-weight:
+    800;
+
+  line-height:
+    1.04;
+
+  letter-spacing:
+    -0.045em;
+
+}
+
+
+.login-about-intro {
+
+  max-width:
+    460px;
+
+  margin:
+    0
+    0
+    22px;
+
+  color:
+    #62665f;
+
+  font-size:
+    15px;
+
+  line-height:
+    1.7;
+
+}
+
+
+/* ===============================================================
+   FEATURE LIST
+================================================================ */
+
+.login-about-list {
+
+  margin:
+    0;
+
+  padding:
+    0;
+
+  list-style:
+    none;
+
+}
+
+
+.login-about-list li {
+
+  position:
+    relative;
+
+  padding:
+    8px
+    0
+    8px
+    22px;
+
+  color:
+    #30332e;
+
+  font-size:
+    14px;
+
+  font-weight:
+    550;
+
+  line-height:
+    1.5;
+
+}
+
+
+.login-about-list li::before {
+
+  content:
+    "";
+
+  position:
+    absolute;
+
+  left:
+    0;
+
+  top:
+    15px;
+
+  width:
+    7px;
+
+  height:
+    7px;
+
+  border-radius:
+    50%;
+
+  background:
+    #b7a52a;
+
+}
+
+
+/* ===============================================================
+   RESPONSIBILITY NOTICE
+================================================================ */
+
+.login-about-notice {
+
+  margin-top:
+    26px;
+
+  padding:
+    18px
+    0
+    0;
+
+  border-top:
+    1px solid #dfe2dc;
+
+}
+
+
+.login-about-notice strong {
+
+  display:
+    block;
+
+  margin-bottom:
+    6px;
+
+  color:
+    #003f22;
+
+  font-size:
+    13px;
+
+  font-weight:
+    750;
+
+}
+
+
+.login-about-notice p {
+
+  max-width:
+    450px;
+
+  margin:
+    0;
+
+  color:
+    #73766f;
+
+  font-size:
+    13px;
+
+  line-height:
+    1.65;
+
+}
+
+
+/* ===============================================================
+   LEARN MORE
+================================================================ */
+
+.login-about-link {
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  gap:
+    8px;
+
+  margin-top:
+    20px;
+
+  color:
+    #003f22;
+
+  text-decoration:
+    none;
+
+  font-size:
+    13px;
+
+  font-weight:
+    750;
+
+}
+
+
+.login-about-link span {
+
+  transition:
+    transform 140ms ease;
+
+}
+
+
+.login-about-link:hover {
+
+  text-decoration:
+    underline;
+
+  text-underline-offset:
+    4px;
+
+}
+
+
+.login-about-link:hover span {
+
+  transform:
+    translateX(
+      3px
+    );
+
+}
+
+
+/* ===============================================================
+   LOGIN FORM COLUMN
+================================================================ */
+
+.login-auth-section {
+
+  width:
+    100%;
+
+  min-width:
+    0;
+
+}
+
+
+/* ===============================================================
+   TABLET
+================================================================ */
+
+@media (
+  max-width: 900px
+) {
+
+  .login-page-layout {
+
+    gap:
+      52px;
+
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(340px, 400px);
+
+  }
+
+
+  .login-about-section h1 {
+
+    font-size:
+      36px;
+
+  }
+
+}
+
+
+/* ===============================================================
+   MOBILE
+
+   Login comes FIRST.
+
+   About information comes AFTER login so returning users
+   immediately reach the primary action.
+================================================================ */
+
+@media (
+  max-width: 760px
+) {
+
+  .login-page-layout {
+
+    width:
+      calc(
+        100% - 32px
+      );
+
+    padding:
+      36px
+      0
+      56px;
+
+    grid-template-columns:
+      1fr;
+
+    gap:
+      48px;
+
+  }
+
+
+  .login-auth-section {
+
+    order:
+      1;
+
+  }
+
+
+  .login-about-section {
+
+    order:
+      2;
+
+    max-width:
+      100%;
+
+    padding-top:
+      40px;
+
+    border-top:
+      1px solid #e4e6e1;
+
+  }
+
+
+  .login-about-section h1 {
+
+    max-width:
+      420px;
+
+    font-size:
+      32px;
+
+  }
+
+
+  .login-about-intro {
+
+    font-size:
+      14px;
+
+  }
+
+}
+
+
+/* ===============================================================
+   SMALL MOBILE
+================================================================ */
+
+@media (
+  max-width: 420px
+) {
+
+  .login-page-layout {
+
+    width:
+      calc(
+        100% - 24px
+      );
+
+  }
+
+
+  .login-about-section h1 {
+
+    font-size:
+      29px;
+
+  }
+
+}
+
+/* ===============================================================
+   MUTESPEAK — SHARED WORDMARK
+
+   Used before and after login so branding stays identical.
+================================================================ */
+
+.site-brand-wordmark,
+.app-wordmark {
+
+  display: block;
+
+  color: #003f22;
+
+  font-family:
+    inherit;
+
+  font-size: 27px;
+
+  font-weight: 800;
+
+  line-height: 1;
+
+  letter-spacing: -1.4px;
+
+  white-space: nowrap;
+
+}
+
+
+/* ===============================================================
+   AUTHENTICATED WORDMARK BUTTON RESET
+
+   Do not use "font: inherit" here because the shorthand can
+   override typography defined on .app-wordmark.
+================================================================ */
+
+.app-wordmark-button {
+
+  margin: 0;
+
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #003f22;
+
+  cursor: pointer;
+
+  text-align: left;
+
+}
+
+
+.app-wordmark-button:hover,
+.site-brand:hover {
+
+  opacity: 0.82;
+
+}
+
+
+.app-wordmark-button:focus-visible,
+.site-brand:focus-visible {
+
+  outline:
+    2px solid #003f22;
+
+  outline-offset: 6px;
+
+}
+
+
+/* ===============================================================
+   MOBILE
+================================================================ */
+
+@media (max-width: 760px) {
+
+  .site-brand-wordmark,
+  .app-wordmark {
+
+    font-size: 24px;
+
+  }
+
+}
+
+
+@media (max-width: 420px) {
+
+  .site-brand-wordmark,
+  .app-wordmark {
+
+    font-size: 21px;
+
+  }
+
+}
+
+/* ===============================================================
+   AUTHENTICATED APP HEADER
+
+   Used after login:
+   Home
+   Search
+   Profile
+   Public Profile
+================================================================ */
+
+.app-header {
+
+  position:
+    sticky;
+
+  top:
+    0;
+
+  z-index:
+    100;
+
+  width:
+    100%;
+
+  height:
+    72px;
+
+  background:
+    #ffffff;
+
+  border-bottom:
+    1px solid #e7e7e2;
+
+}
+
+
+/* ===============================================================
+   AUTHENTICATED HEADER INNER
+
+   Matches SiteHeader positioning exactly.
+
+   Desktop:
+   24px from left/right edge.
+
+   Mobile:
+   16px.
+
+   Small mobile:
+   12px.
+================================================================ */
+
+.app-header-inner {
+
+  width:
+    100%;
+
+  height:
+    100%;
+
+  margin:
+    0;
+
+  padding:
+    0 24px;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+}
+
+
+/* ===============================================================
+   BRAND POSITION
+
+   Typography itself comes entirely from BrandWordmark.css.
+================================================================ */
+
+.app-header .brand-wordmark {
+
+  flex-shrink:
+    0;
+
+}
+
+
+/* ===============================================================
+   APP CONTENT
+================================================================ */
+
+.app-content {
+
+  width:
+    100%;
+
+  flex:
+    1;
+
+}
+
+
+/* ===============================================================
+   MOBILE
+================================================================ */
+
+@media (
+  max-width: 760px
+) {
+
+  .app-header {
+
+    height:
+      64px;
+
+  }
+
+
+  .app-header-inner {
+
+    width:
+      100%;
+
+    margin:
+      0;
+
+    padding:
+      0 16px;
+
+  }
+
+}
+
+
+/* ===============================================================
+   VERY SMALL MOBILE
+================================================================ */
+
+@media (
+  max-width: 420px
+) {
+
+  .app-header-inner {
+
+    width:
+      100%;
+
+    padding:
+      0 12px;
+
+  }
+
+}
+
+/* ===============================================================
+   REGISTER — PRODUCT + AUTH LAYOUT
+================================================================ */
+
+.register-layout {
+
+  width:
+    min(
+      1000px,
+      calc(100% - 48px)
+    );
+
+  margin:
+    0 auto;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(380px, 420px);
+
+  align-items:
+    center;
+
+  gap:
+    80px;
+
+}
+
+
+/* ---------------------------------------------------------------
+   PRODUCT INTRO
+---------------------------------------------------------------- */
+
+.register-product-intro {
+
+  max-width:
+    480px;
+
+}
+
+
+.register-product-eyebrow {
+
+  display:
+    block;
+
+  margin-bottom:
+    14px;
+
+  color:
+    #9a8d2c;
+
+  font-size:
+    10px;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    0.1em;
+
+  text-transform:
+    uppercase;
+
+}
+
+
+.register-product-intro h2 {
+
+  margin:
+    0
+    0
+    18px;
+
+  color:
+    #003f22;
+
+  font-size:
+    clamp(
+      30px,
+      4vw,
+      42px
+    );
+
+  font-weight:
+    800;
+
+  line-height:
+    1.05;
+
+  letter-spacing:
+    -0.045em;
+
+}
+
+
+.register-product-intro > p {
+
+  margin:
+    0;
+
+  max-width:
+    440px;
+
+  color:
+    #686c65;
+
+  font-size:
+    14px;
+
+  line-height:
+    1.75;
+
+}
+
+
+/* ---------------------------------------------------------------
+   PRODUCT POINTS
+---------------------------------------------------------------- */
+
+.register-product-points {
+
+  margin-top:
+    30px;
+
+  border-top:
+    1px solid #dfe2dc;
+
+}
+
+
+.register-product-point {
+
+  padding:
+    14px
+    0;
+
+  border-bottom:
+    1px solid #dfe2dc;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    34px
+    1fr;
+
+  align-items:
+    center;
+
+  gap:
+    10px;
+
+}
+
+
+.register-product-point span {
+
+  color:
+    #9a8d2c;
+
+  font-size:
+    10px;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    0.05em;
+
+}
+
+
+.register-product-point p {
+
+  margin:
+    0;
+
+  color:
+    #4f544d;
+
+  font-size:
+    13px;
+
+  font-weight:
+    650;
+
+  line-height:
+    1.5;
+
+}
+
+
+/* ---------------------------------------------------------------
+   PRODUCT NOTE
+---------------------------------------------------------------- */
+
+.register-product-intro
+.register-product-note {
+
+  margin-top:
+    22px;
+
+  color:
+    #003f22;
+
+  font-size:
+    12px;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    0.01em;
+
+}
+
+
+/* ---------------------------------------------------------------
+   AUTH SECTION
+---------------------------------------------------------------- */
+
+.register-auth-section {
+
+  width:
+    100%;
+
+}
+
+
+/*
+ * AuthWindow already has its own max-width.
+ * Ensure it fills the registration column.
+ */
+
+.register-auth-section
+.auth-window {
+
+  max-width:
+    none;
+
+}
+
+
+/* ===============================================================
+   TABLET / MOBILE
+================================================================ */
+
+@media (
+  max-width: 820px
+) {
+
+  .register-layout {
+
+    width:
+      min(
+        520px,
+        calc(100% - 32px)
+      );
+
+    grid-template-columns:
+      1fr;
+
+    gap:
+      40px;
+
+  }
+
+
+  .register-product-intro {
+
+    max-width:
+      100%;
+
+  }
+
+
+  .register-product-intro h2 {
+
+    font-size:
+      32px;
+
+  }
+
+}
+
+
+/* ===============================================================
+   SMALL MOBILE
+================================================================ */
+
+@media (
+  max-width: 480px
+) {
+
+  .register-layout {
+
+    width:
+      calc(100% - 24px);
+
+    gap:
+      30px;
+
+  }
+
+
+  .register-product-intro h2 {
+
+    font-size:
+      28px;
+
+  }
+
+
+  .register-product-intro > p {
+
+    font-size:
+      13px;
+
+  }
+
+
+  .register-product-points {
+
+    margin-top:
+      24px;
+
+  }
+
+}
+
+.new-posts-badge-container {
+  position: fixed;
+  top: 80px; /* Adjust this to sit perfectly below your navbar */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+}
+
+.new-posts-badge-button {
+  padding: 8px 16px;
+  border-radius: 24px;
+  background-color: var(--primary-color, #2563eb);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.2s ease;
+}
+
+.new-posts-badge-button:hover {
+  transform: scale(1.05);
+}
+
+.profile-poke-button {
+    margin-top: 12px;
+    padding: 8px 18px;
+    border: none;
+    border-radius: 999px;
+    background: #0f766e;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .2s ease;
+}
+
+.profile-poke-button:hover:not(:disabled) {
+    opacity: .9;
+}
+
+.profile-poke-button:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}

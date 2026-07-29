@@ -1,0 +1,135 @@
+/* =========================================================
+   OVERLAY CONTAINER
+========================================================= */
+.splash-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  
+  /* Deep green brand background */
+  background-color: #052c16; 
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+  
+  /* Hardware-accelerated transitions for 60fps mobile performance */
+  transition: 
+    opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0.8s,
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 
+  Exit animation: slightly scales up while fading out, 
+  creating a cinematic "zoom-through" effect into the main feed.
+*/
+.splash-fade-out {
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(1.08); 
+  pointer-events: none;
+}
+
+/* =========================================================
+   TEXT LAYOUT
+========================================================= */
+.splash-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  
+  /* Disable text selection on UI elements for a native feel */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* =========================================================
+   SUBTITLE ("WELCOME TO")
+========================================================= */
+.splash-subtitle {
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: rgba(255, 255, 255, 0.5);
+  
+  opacity: 0;
+  animation: subtitleReveal 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: 0.1s;
+}
+
+/* =========================================================
+   BRAND NAME
+========================================================= */
+.splash-brand-container {
+  display: flex;
+  align-items: center;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #ffffff;
+  
+  /* Clipping the container so letters can slide up cleanly from "nowhere" */
+  overflow: hidden;
+  padding: 0.2rem;
+}
+
+.splash-char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(100%);
+  animation: charReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Warm, golden hour accent color for the semicolon */
+.splash-accent {
+  color: #f59e0b; 
+}
+
+/* =========================================================
+   KEYFRAMES
+========================================================= */
+@keyframes subtitleReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px);
+    letter-spacing: 0.1em;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    letter-spacing: 0.4em;
+  }
+}
+
+@keyframes charReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================================
+   RESPONSIVE ADJUSTMENTS
+========================================================= */
+@media (min-width: 640px) {
+  .splash-brand-container {
+    font-size: 4.5rem;
+  }
+  .splash-subtitle {
+    font-size: 0.85rem;
+  }
+}

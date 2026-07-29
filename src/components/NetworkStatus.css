@@ -1,0 +1,82 @@
+.offline-banner {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+
+  /* Change width from 420px to just wrap around the text */
+  width: max-content;
+  max-width: 90%; /* Keeps it from overflowing on tiny phone screens */
+
+  background: #023b1f;
+  color: white;
+  border-radius: 14px;
+  padding: 12px 24px; /* Slightly wider padding looks better on small banners */
+
+  display: flex;
+  flex-direction: column;
+  
+  /* NEW: Center the text inside the banner */
+  align-items: center; 
+  text-align: center;
+  
+  gap: 4px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  animation: slideDown .25s ease;
+}
+
+.offline-banner small{
+  opacity:.8;
+}
+
+.online-toast{
+  position:fixed;
+
+  bottom:24px;
+  left:50%;
+
+  transform:translateX(-50%);
+
+  z-index:9999;
+
+  background:#ffffff;
+
+  color:#023B1F;
+
+  padding:12px 20px;
+
+  border-radius:14px;
+
+  box-shadow:0 10px 25px rgba(0,0,0,.2);
+
+  animation:fadeIn .25s ease;
+}
+
+@keyframes slideDown{
+
+  from{
+    opacity:0;
+    transform:translate(-50%,-20px);
+  }
+
+  to{
+    opacity:1;
+    transform:translate(-50%,0);
+  }
+
+}
+
+@keyframes fadeIn{
+
+  from{
+    opacity:0;
+    transform:translate(-50%,20px);
+  }
+
+  to{
+    opacity:1;
+    transform:translate(-50%,0);
+  }
+
+}

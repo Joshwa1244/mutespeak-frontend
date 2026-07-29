@@ -1,0 +1,307 @@
+/* ===============================================================
+   AUTH PAGE
+
+   Auth pages now live inside PublicLayout:
+
+   SiteHeader
+       ↓
+   Auth content
+       ↓
+   SiteFooter
+
+   Therefore this component must NOT force 100vh.
+================================================================ */
+
+.auth-page {
+
+  width: 100%;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  padding: 24px;
+
+}
+
+
+/* ===============================================================
+   AUTH WINDOW
+================================================================ */
+
+.auth-window {
+
+  width: 100%;
+
+  max-width: 420px;
+
+  background:
+    var(--chrome);
+
+  border:
+    2px solid
+    var(--chrome-dk);
+
+  box-shadow:
+
+    inset
+    1px
+    1px
+    0
+    #ffffff,
+
+    inset
+    -1px
+    -1px
+    0
+    var(--chrome-dk),
+
+    4px
+    4px
+    0
+    rgba(
+      0,
+      0,
+      0,
+      0.15
+    );
+
+}
+
+
+/* ===============================================================
+   TITLE BAR
+================================================================ */
+
+.auth-titlebar {
+
+  background:
+
+    linear-gradient(
+      90deg,
+      var(--navy),
+      var(--navy-dk)
+    );
+
+  color:
+    #ffffff;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  padding:
+    7px
+    10px;
+
+  border-bottom:
+    2px solid
+    var(--chrome-dk);
+
+}
+
+
+.auth-titlebar-text {
+
+  font-size:
+    20px;
+
+}
+
+
+/* ===============================================================
+   WINDOW DOTS
+================================================================ */
+
+.auth-dots {
+
+  display:
+    flex;
+
+  gap:
+    6px;
+
+}
+
+
+.auth-dot {
+
+  width:
+    12px;
+
+  height:
+    12px;
+
+  background:
+    var(--chrome);
+
+  border:
+    1px solid
+    var(--chrome-dk);
+
+}
+
+
+/* ===============================================================
+   AUTH BODY
+================================================================ */
+
+.auth-body {
+
+  margin:
+    10px;
+
+  padding:
+    22px
+    20px
+    24px;
+
+  background:
+    var(--card);
+
+}
+
+
+/* ===============================================================
+   TITLE
+================================================================ */
+
+.auth-title {
+
+  margin:
+    0
+    0
+    4px;
+
+  color:
+    var(--navy);
+
+  font-size:
+    20px;
+
+  font-weight:
+    800;
+
+}
+
+
+/* ===============================================================
+   SUBTITLE
+================================================================ */
+
+.auth-subtitle {
+
+  margin:
+    0
+    0
+    18px;
+
+  color:
+    var(--ink-soft);
+
+  font-size:
+    13px;
+
+  line-height:
+    1.5;
+
+}
+
+
+/* ===============================================================
+   FOOTNOTE
+================================================================ */
+
+.auth-footnote {
+
+  margin-top:
+    14px;
+
+  color:
+    var(--ink-soft);
+
+  font-size:
+    11px;
+
+  text-transform:
+    uppercase;
+
+  letter-spacing:
+    1px;
+
+}
+
+
+/* ===============================================================
+   MOBILE
+================================================================ */
+
+@media (
+  max-width: 600px
+) {
+
+  .auth-page {
+
+    padding:
+      16px
+      0;
+
+  }
+
+
+  .auth-window {
+
+    max-width:
+      420px;
+
+  }
+
+
+  .auth-body {
+
+    margin:
+      8px;
+
+    padding:
+      20px
+      16px
+      22px;
+
+  }
+
+
+  .auth-titlebar-text {
+
+    font-size:
+      18px;
+
+  }
+
+}
+
+
+/* ===============================================================
+   VERY SMALL MOBILE
+================================================================ */
+
+@media (
+  max-width: 420px
+) {
+
+  .auth-window {
+
+    max-width:
+      100%;
+
+  }
+
+}

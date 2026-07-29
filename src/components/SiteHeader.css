@@ -1,0 +1,475 @@
+/* ---------------------------------------------------------------
+   MUTESPEAK SITE HEADER
+---------------------------------------------------------------- */
+
+.site-header {
+
+  position: relative;
+
+  z-index: 100;
+
+  width: 100%;
+
+  background:
+    #ffffff;
+
+  border-bottom:
+    1px solid #e7e7e2;
+
+}
+
+
+/* ---------------------------------------------------------------
+   INNER CONTAINER
+
+   Full-width header so the mutespeak wordmark stays near
+   the left edge instead of being constrained inside
+   a centered 1180px container.
+---------------------------------------------------------------- */
+
+.site-header-inner {
+
+  width: 100%;
+
+  min-height:
+    72px;
+
+  margin: 0;
+
+  padding:
+    0 24px;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    32px;
+
+}
+
+
+/* ---------------------------------------------------------------
+   BRAND
+
+   Typography is controlled by:
+
+   BrandWordmark.jsx
+   BrandWordmark.css
+
+   This file only controls header-specific positioning.
+---------------------------------------------------------------- */
+
+.site-header .brand-wordmark {
+
+  flex-shrink: 0;
+
+}
+
+
+/* ---------------------------------------------------------------
+   NAVIGATION
+---------------------------------------------------------------- */
+
+.site-header-nav {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    8px;
+
+}
+
+
+.site-nav-link {
+
+  position:
+    relative;
+
+  padding:
+    10px 12px;
+
+  color:
+    #555650;
+
+  text-decoration:
+    none;
+
+  font-size:
+    14px;
+
+  font-weight:
+    600;
+
+  transition:
+    color 140ms ease;
+
+}
+
+
+.site-nav-link:hover {
+
+  color:
+    #003f22;
+
+}
+
+
+.site-nav-link-active {
+
+  color:
+    #003f22;
+
+}
+
+
+.site-nav-link-active::after {
+
+  content:
+    "";
+
+  position:
+    absolute;
+
+  left:
+    12px;
+
+  right:
+    12px;
+
+  bottom:
+    3px;
+
+  height:
+    2px;
+
+  background:
+    #b7a52a;
+
+}
+
+
+/* ---------------------------------------------------------------
+   HEADER ACTIONS
+
+   Push Login + Sign up to the far right.
+---------------------------------------------------------------- */
+
+.site-header-actions {
+
+  margin-left:
+    auto;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    12px;
+
+}
+
+
+/* ---------------------------------------------------------------
+   LOGIN
+---------------------------------------------------------------- */
+
+.site-header-login {
+
+  padding:
+    10px 14px;
+
+  color:
+    #003f22;
+
+  text-decoration:
+    none;
+
+  font-size:
+    14px;
+
+  font-weight:
+    700;
+
+}
+
+
+.site-header-login:hover {
+
+  text-decoration:
+    underline;
+
+  text-underline-offset:
+    4px;
+
+}
+
+
+.site-header-login:focus-visible {
+
+  outline:
+    2px solid #003f22;
+
+  outline-offset:
+    4px;
+
+}
+
+
+/* ---------------------------------------------------------------
+   REGISTER / SIGN UP
+---------------------------------------------------------------- */
+
+.site-header-register {
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  min-height:
+    42px;
+
+  padding:
+    0 18px;
+
+  background:
+    #003f22;
+
+  color:
+    #ffffff;
+
+  border:
+    1px solid #003f22;
+
+  text-decoration:
+    none;
+
+  font-size:
+    14px;
+
+  font-weight:
+    700;
+
+  white-space:
+    nowrap;
+
+  transition:
+    background 140ms ease,
+    color 140ms ease;
+
+}
+
+
+.site-header-register:hover {
+
+  background:
+    #ffffff;
+
+  color:
+    #003f22;
+
+}
+
+
+.site-header-register:focus-visible {
+
+  outline:
+    2px solid #003f22;
+
+  outline-offset:
+    4px;
+
+}
+
+
+/* ---------------------------------------------------------------
+   AUTHENTICATED HEADER
+
+   Available if SiteHeader is reused for an authenticated page.
+---------------------------------------------------------------- */
+
+.site-header-authenticated {
+
+  margin-left:
+    auto;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+}
+
+
+.site-header-community-label {
+
+  color:
+    #73746e;
+
+  font-size:
+    13px;
+
+  font-weight:
+    600;
+
+}
+
+
+/* ---------------------------------------------------------------
+   TABLET / MOBILE
+---------------------------------------------------------------- */
+
+@media (
+  max-width: 760px
+) {
+
+  .site-header-inner {
+
+    width: 100%;
+
+    min-height:
+      64px;
+
+    padding:
+      0 16px;
+
+    gap:
+      16px;
+
+  }
+
+
+  /*
+   * Hide secondary public navigation on smaller screens.
+   *
+   * BrandWordmark.css controls the mobile logo font size.
+   */
+
+  .site-header-nav {
+
+    display:
+      none;
+
+  }
+
+
+  .site-header-actions {
+
+    gap:
+      6px;
+
+  }
+
+
+  .site-header-login {
+
+    padding:
+      9px 8px;
+
+    font-size:
+      13px;
+
+  }
+
+
+  .site-header-register {
+
+    min-height:
+      38px;
+
+    padding:
+      0 12px;
+
+    font-size:
+      13px;
+
+  }
+
+
+  .site-header-community-label {
+
+    display:
+      none;
+
+  }
+
+}
+
+
+/* ---------------------------------------------------------------
+   VERY SMALL MOBILE
+---------------------------------------------------------------- */
+
+@media (
+  max-width: 420px
+) {
+
+  .site-header-inner {
+
+    width: 100%;
+
+    padding:
+      0 12px;
+
+    gap:
+      10px;
+
+  }
+
+
+  .site-header-actions {
+
+    gap:
+      4px;
+
+  }
+
+
+  .site-header-login {
+
+    padding:
+      8px 6px;
+
+  }
+
+
+  /*
+   * Keep the Sign up button compact on narrow phones.
+   */
+
+  .site-header-register {
+
+    padding:
+      0 10px;
+
+    font-size:
+      0;
+
+  }
+
+
+  .site-header-register::after {
+
+    content:
+      "Join";
+
+    font-size:
+      13px;
+
+  }
+
+}

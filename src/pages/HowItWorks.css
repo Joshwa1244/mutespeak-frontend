@@ -1,0 +1,624 @@
+/* ===============================================================
+   MUTESPEAK — HOW IT WORKS
+================================================================ */
+
+.how-page {
+
+  width: 100%;
+
+  background: #ffffff;
+
+  color: #252821;
+
+}
+
+
+.how-container,
+.how-principle-inner,
+.how-cta-inner {
+
+  width:
+    min(
+      1180px,
+      calc(100% - 48px)
+    );
+
+  margin: 0 auto;
+
+}
+
+
+/* ===============================================================
+   HERO
+================================================================ */
+
+.how-hero {
+
+  padding:
+    88px
+    0
+    80px;
+
+  border-bottom:
+    1px solid #e7e7e2;
+
+}
+
+
+.how-eyebrow {
+
+  display: block;
+
+  margin-bottom: 16px;
+
+  color: #9a8d2c;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  line-height: 1.3;
+
+  letter-spacing: 0.1em;
+
+  text-transform: uppercase;
+
+}
+
+
+.how-hero h1 {
+
+  margin:
+    0
+    0
+    24px;
+
+  color: #003f22;
+
+  font-size:
+    clamp(
+      48px,
+      7vw,
+      76px
+    );
+
+  font-weight: 800;
+
+  line-height: 0.98;
+
+  letter-spacing: -0.055em;
+
+}
+
+
+.how-hero p {
+
+  max-width: 590px;
+
+  margin: 0;
+
+  color: #62665f;
+
+  font-size: 16px;
+
+  line-height: 1.75;
+
+}
+
+
+/* ===============================================================
+   STEPS
+================================================================ */
+
+.how-steps {
+
+  padding:
+    88px
+    0
+    96px;
+
+}
+
+
+.how-step-grid {
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+
+  border-top:
+    1px solid #dfe2dc;
+
+  border-bottom:
+    1px solid #dfe2dc;
+
+}
+
+
+.how-step {
+
+  min-height: 270px;
+
+  padding:
+    30px;
+
+  border-right:
+    1px solid #dfe2dc;
+
+}
+
+
+.how-step:last-child {
+
+  border-right: 0;
+
+}
+
+
+.how-step-number {
+
+  display: block;
+
+  margin-bottom: 64px;
+
+  color: #9a8d2c;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+
+}
+
+
+.how-step h2 {
+
+  margin:
+    0
+    0
+    12px;
+
+  color: #003f22;
+
+  font-size: 20px;
+
+  font-weight: 800;
+
+  line-height: 1.2;
+
+  letter-spacing: -0.025em;
+
+}
+
+
+.how-step p {
+
+  margin: 0;
+
+  color: #6c7069;
+
+  font-size: 13px;
+
+  line-height: 1.7;
+
+}
+
+
+/* ===============================================================
+   PRINCIPLE
+================================================================ */
+
+.how-principle {
+
+  padding:
+    80px
+    0;
+
+  background: #003f22;
+
+}
+
+
+.how-principle-inner {
+
+  display: grid;
+
+  grid-template-columns:
+    220px
+    minmax(0, 650px);
+
+  gap: 72px;
+
+}
+
+
+.how-principle-label {
+
+  padding-top: 8px;
+
+  color: #b7a52a;
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+
+  text-transform: uppercase;
+
+}
+
+
+.how-principle h2 {
+
+  margin:
+    0
+    0
+    20px;
+
+  color: #ffffff;
+
+  font-size:
+    clamp(
+      32px,
+      5vw,
+      48px
+    );
+
+  font-weight: 800;
+
+  line-height: 1.05;
+
+  letter-spacing: -0.045em;
+
+}
+
+
+.how-principle p {
+
+  max-width: 570px;
+
+  margin: 0;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.7
+    );
+
+  font-size: 14px;
+
+  line-height: 1.75;
+
+}
+
+
+/* ===============================================================
+   CTA
+================================================================ */
+
+.how-cta {
+
+  padding:
+    72px
+    0;
+
+  background: #f6f7f3;
+
+}
+
+
+.how-cta-inner {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 40px;
+
+}
+
+
+.how-cta h2 {
+
+  margin: 0;
+
+  color: #003f22;
+
+  font-size:
+    clamp(
+      30px,
+      4vw,
+      42px
+    );
+
+  font-weight: 800;
+
+  line-height: 1.05;
+
+  letter-spacing: -0.04em;
+
+}
+
+
+.how-cta-button {
+
+  flex-shrink: 0;
+
+  min-height: 46px;
+
+  padding:
+    0 20px;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 10px;
+
+  background: #003f22;
+
+  border:
+    1px solid #003f22;
+
+  color: #ffffff;
+
+  text-decoration: none;
+
+  font-size: 13px;
+
+  font-weight: 750;
+
+  transition:
+    background 140ms ease,
+    color 140ms ease;
+
+}
+
+
+.how-cta-button:hover {
+
+  background: #ffffff;
+
+  color: #003f22;
+
+}
+
+
+.how-cta-button span {
+
+  transition:
+    transform 140ms ease;
+
+}
+
+
+.how-cta-button:hover span {
+
+  transform:
+    translateX(3px);
+
+}
+
+
+/* ===============================================================
+   TABLET
+================================================================ */
+
+@media (
+  max-width: 900px
+) {
+
+  .how-step-grid {
+
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+
+  }
+
+
+  .how-step {
+
+    border-bottom:
+      1px solid #dfe2dc;
+
+  }
+
+
+  .how-step:nth-child(2) {
+
+    border-right: 0;
+
+  }
+
+
+  .how-step:nth-child(3),
+  .how-step:nth-child(4) {
+
+    border-bottom: 0;
+
+  }
+
+
+  .how-step-number {
+
+    margin-bottom: 42px;
+
+  }
+
+
+  .how-principle-inner {
+
+    grid-template-columns:
+      170px
+      minmax(0, 1fr);
+
+    gap: 48px;
+
+  }
+
+}
+
+
+/* ===============================================================
+   MOBILE
+================================================================ */
+
+@media (
+  max-width: 640px
+) {
+
+  .how-container,
+  .how-principle-inner,
+  .how-cta-inner {
+
+    width:
+      calc(
+        100% - 32px
+      );
+
+  }
+
+
+  .how-hero {
+
+    padding:
+      62px
+      0;
+
+  }
+
+
+  .how-hero h1 {
+
+    font-size:
+      clamp(
+        43px,
+        14vw,
+        58px
+      );
+
+  }
+
+
+  .how-hero p {
+
+    font-size: 15px;
+
+  }
+
+
+  .how-steps {
+
+    padding:
+      64px
+      0
+      72px;
+
+  }
+
+
+  .how-step-grid {
+
+    grid-template-columns: 1fr;
+
+  }
+
+
+  .how-step {
+
+    min-height: 0;
+
+    padding:
+      28px
+      0;
+
+    border-right: 0;
+
+    border-bottom:
+      1px solid #dfe2dc;
+
+  }
+
+
+  .how-step:nth-child(3) {
+
+    border-bottom:
+      1px solid #dfe2dc;
+
+  }
+
+
+  .how-step:last-child {
+
+    border-bottom: 0;
+
+  }
+
+
+  .how-step-number {
+
+    margin-bottom: 26px;
+
+  }
+
+
+  .how-principle {
+
+    padding:
+      64px
+      0;
+
+  }
+
+
+  .how-principle-inner {
+
+    grid-template-columns: 1fr;
+
+    gap: 20px;
+
+  }
+
+
+  .how-principle-label {
+
+    padding-top: 0;
+
+  }
+
+
+  .how-cta {
+
+    padding:
+      56px
+      0;
+
+  }
+
+
+  .how-cta-inner {
+
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 30px;
+
+  }
+
+}

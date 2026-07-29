@@ -1,0 +1,83 @@
+/* ---------------------------------------------------------------
+   MUTESPEAK PUBLIC LAYOUT
+
+   Used for pages accessible before authentication:
+
+   - Login
+   - Register
+   - OTP verification
+   - Forgot password
+   - About
+   - How it works
+   - Privacy
+   - Terms
+   - Contact
+---------------------------------------------------------------- */
+
+.public-layout {
+
+  width:
+    100%;
+
+  min-height:
+    100vh;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  background:
+    #ffffff;
+
+}
+
+
+/* ---------------------------------------------------------------
+   MAIN CONTENT
+
+   flex: 1 ensures that on short pages:
+
+   Header
+       ↓
+   Content expands
+       ↓
+   Footer stays at bottom
+
+   rather than floating halfway up the screen.
+---------------------------------------------------------------- */
+
+.public-layout-main {
+
+  width:
+    100%;
+
+  flex:
+    1;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+}
+
+
+/* ---------------------------------------------------------------
+   MOBILE
+---------------------------------------------------------------- */
+
+@media (
+  max-width: 760px
+) {
+
+  .public-layout {
+
+    min-height:
+      100dvh;
+
+  }
+
+}
