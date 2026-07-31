@@ -982,11 +982,11 @@ export default function PublicProfile() {
 
   if (loading) {
     return (
-      <AppShell>
+      
         <main className="public-profile-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
           <CreativeLoader message="Fetching profile..." />
         </main>
-      </AppShell>
+     
     );
   }
 
@@ -1001,7 +1001,7 @@ export default function PublicProfile() {
 
     return (
 
-      <AppShell>
+     
 
         <div className="public-profile-page" style={{ maxWidth: "800px", margin: "0 auto", padding: "2rem 1rem", fontFamily: "system-ui, sans-serif" }}>
 
@@ -1030,7 +1030,7 @@ export default function PublicProfile() {
 
         </div>
 
-      </AppShell>
+   
 
     );
 

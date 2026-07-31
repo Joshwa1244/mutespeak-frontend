@@ -832,11 +832,11 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <AppShell>
+      
         <main className="profile-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
           <CreativeLoader message="Loading profile..." />
         </main>
-      </AppShell>
+    
     );
   }
 
