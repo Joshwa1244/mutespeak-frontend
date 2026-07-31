@@ -6,6 +6,7 @@ import { Routes, Route, Outlet } from "react-router-dom";
 import NetworkStatus from "./components/NetworkStatus";
 import InstallPrompt from "./components/InstallPrompt";
 // ❌ UpdateBanner imported removed
+import { Analytics } from '@vercel/analytics/react';
 
 // ---------------------------------------------------------------
 // LAYOUTS
@@ -52,6 +53,7 @@ export default function App() {
       <NetworkStatus />
       <InstallPrompt />
       {/* ❌ <UpdateBanner /> removed */}
+      <Analytics />
 
       <Routes>
         {/* =========================================================
