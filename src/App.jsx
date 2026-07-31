@@ -28,6 +28,7 @@ import Terms from "./pages/Terms";
 import HowItWorks from "./pages/HowItWorks";
 import Privacy from "./pages/Privacy";
 import Support from "./pages/Support"; // Ensure the path matches your folder structure
+import StartupRedirect from "./components/StartupRedirect";
 // ---------------------------------------------------------------
 // AUTHENTICATED PAGES
 // ---------------------------------------------------------------
@@ -67,7 +68,7 @@ export default function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={<StartupRedirect />}/>
           <Route path="/about" element={<About />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify-otp" element={<VerifyOtp />} />
