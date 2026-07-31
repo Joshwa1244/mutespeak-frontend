@@ -7,6 +7,7 @@ import NetworkStatus from "./components/NetworkStatus";
 import InstallPrompt from "./components/InstallPrompt";
 // ❌ UpdateBanner imported removed
 import { Analytics } from '@vercel/analytics/react';
+import ScrollToTop from "./components/ScrollToTop";
 
 // ---------------------------------------------------------------
 // LAYOUTS
@@ -54,6 +55,8 @@ export default function App() {
       <InstallPrompt />
       {/* ❌ <UpdateBanner /> removed */}
       <Analytics />
+       {/* Scroll to top on every route change */}
+      <ScrollToTop />
 
       <Routes>
         {/* =========================================================
