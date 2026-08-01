@@ -305,3 +305,44 @@
   }
 
 }
+
+/* ===============================================================
+   PASSWORD TOGGLE EYE BUTTON
+================================================================ */
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  width: 100%;
+}
+
+/* Ensure text doesn't hide behind the button */
+.password-input-wrapper input {
+  width: 100%;
+  padding-right: 36px !important; 
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  color: var(--ink-soft);
+  transition: color 0.2s;
+}
+
+.password-toggle-btn:hover {
+  color: var(--navy);
+}
+
+.password-toggle-btn svg {
+  width: 16px;
+  height: 16px;
+}

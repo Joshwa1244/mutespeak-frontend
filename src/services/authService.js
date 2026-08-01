@@ -25,14 +25,13 @@
 // ---------------------------------------------------------------
 
 const BACKEND_BASE =
-//  "http://localhost:8080";
+  //"http://localhost:8080";
 "https://site--mutespeak-backend--22t95wnlrvvt.code.run";
 const API_BASE =
   `${BACKEND_BASE}/api/auth`;
 
 const TOKEN_KEY =
   "cograd_token";
-
 
 // ---------------------------------------------------------------
 // SHARED RESPONSE HANDLER
@@ -41,8 +40,9 @@ const TOKEN_KEY =
 // Safely handles:
 //
 // - JSON success responses
-// - JSON error responses
-// - Empty responses
+// - JSON error responses (checking multiple common keys)
+// - Plain text error responses
+// - Empty bodies (using HTTP status text as fallback)
 //
 // ---------------------------------------------------------------
 
@@ -51,17 +51,16 @@ async function handleResponse(
 ) {
 
   let data = null;
-
+  let rawText = "";
 
   try {
-
-    data =
-      await response.json();
-
+    // Read as text first
+    rawText = await response.text();
+    if (rawText) {
+      data = JSON.parse(rawText);
+    }
   } catch {
-
-    // Some backend responses may not contain JSON.
-
+    // Backend response was not valid JSON
   }
 
 
@@ -69,11 +68,26 @@ async function handleResponse(
     !response.ok
   ) {
 
+    // 1. Try to extract the error from common JSON keys
+    let errorMessage = 
+      data?.message || 
+      data?.error || 
+      data?.errorMessage || 
+      data?.details;
+
+    // 2. If no JSON error was found, but we have plain text (and it's not HTML)
+    if (!errorMessage && rawText && !rawText.trim().startsWith('<')) {
+      errorMessage = rawText;
+    }
+
+    // 3. If the backend sent a totally blank body, use the HTTP status text (e.g. "Unauthorized")
+    if (!errorMessage) {
+      errorMessage = response.statusText ? `Error: ${response.statusText}` : `Error code: ${response.status}`;
+    }
+
+    // 4. Final fallback
     throw new Error(
-
-      data?.message ||
-      "Something went wrong. Please try again."
-
+      errorMessage || "Something went wrong. Please try again."
     );
 
   }
@@ -82,7 +96,6 @@ async function handleResponse(
   return data;
 
 }
-
 
 // ---------------------------------------------------------------
 // JWT TOKEN MANAGEMENT
