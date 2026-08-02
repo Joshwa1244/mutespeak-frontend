@@ -38,7 +38,8 @@ import Profile from "./pages/Profile";
 import Search from "./pages/Search";
 import PublicProfile from "./pages/PublicProfile";
 import Notifications from "./pages/Notifications";
-
+import Hub from "./pages/Hub";
+import News from "./pages/News";
 // ✅ We create a wrapper so AppShell can act as a Router Layout
 function AppShellLayout() {
   return (
@@ -87,6 +88,8 @@ export default function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile/:userId" element={<PublicProfile />} />
+          <Route path="/hub" element={<Hub />} />
+          <Route path="/news" element={<News />} />
         </Route>
       </Routes>
     </>

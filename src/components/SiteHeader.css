@@ -473,3 +473,35 @@
   }
 
 }
+
+.site-header-authenticated {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 16px; /* Added gap to push the icon away from the text */
+}
+
+.site-header-community-label {
+  color: #73746e;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.site-header-hub-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555650;
+  transition: color 140ms ease;
+}
+
+.site-header-hub-icon:hover {
+  color: #003f22;
+}
+
+/* Make sure to add this inside your max-width: 760px media query to adjust spacing on mobile */
+@media (max-width: 760px) {
+  .site-header-authenticated {
+    gap: 0;
+  }
+}

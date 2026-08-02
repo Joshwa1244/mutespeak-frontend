@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom"; // ✅ Added Link import here
 import { getCurrentUser } from "../services/authService";
 import { getUnreadCount } from "../services/notificationService";
 import { subscribe } from "../services/websocketService";
@@ -25,38 +25,36 @@ export default function AppShell({ children }) {
         console.error("Failed to fetch unread count", error);
       }
     }
-async function initializeNotifications() {
-  try {
-    const user = await getCurrentUser();
+    
+    async function initializeNotifications() {
+      try {
+        const user = await getCurrentUser();
 
-    if (cancelled) {
-      return;
-    }
+        if (cancelled) {
+          return;
+        }
 
-    await refreshUnreadCount();
+        await refreshUnreadCount();
 
-    notificationSubscription = subscribe(
-      `/topic/notifications/${user.id}`,
-      () => {
-        refreshUnreadCount();
+        notificationSubscription = subscribe(
+          `/topic/notifications/${user.id}`,
+          () => {
+            refreshUnreadCount();
+          }
+        );
+
+      } catch (error) {
+        console.error("Notification initialization failed", error);
+
+        /*
+         * Session expired or token missing.
+         * Redirect back to login.
+         */
+        navigate("/", {
+          replace: true,
+        });
       }
-    );
-
-  } catch (error) {
-
-    console.error("Notification initialization failed", error);
-
-    /*
-     * Session expired or token missing.
-     * Redirect back to login.
-     */
-
-    navigate("/", {
-      replace: true,
-    });
-
-  }
-}
+    }
 
     initializeNotifications();
 
@@ -66,7 +64,7 @@ async function initializeNotifications() {
         notificationSubscription.unsubscribe();
       }
     };
-  }, []);
+  }, [navigate]);
 
   // -------------------------------------------------------------
   // BRAND → HOME
@@ -83,7 +81,11 @@ async function initializeNotifications() {
          There is intentionally NO footer inside AppShell.
       ========================================================== */}
       <header className="app-header">
-        <div className="app-header-inner">
+        {/* ✅ Added inline flex styles to separate the logo and the icon */}
+        <div 
+          className="app-header-inner" 
+          style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}
+        >
           {/* -----------------------------------------------------
              MUTESPEAK BRAND
           ------------------------------------------------------ */}
@@ -95,6 +97,20 @@ async function initializeNotifications() {
           >
             mutespeak;
           </button>
+
+          {/* -----------------------------------------------------
+             HUB ICON (Right Corner)
+          ------------------------------------------------------ */}
+          <Link 
+            to="/hub" 
+            aria-label="Campus Hub" 
+            style={{ color: "#555650", display: "flex", alignItems: "center" }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+          </Link>
+
         </div>
       </header>
 

@@ -1,0 +1,140 @@
+.hub-container {
+  max-width: 1050px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.hub-header-section {
+  margin-bottom: 3rem;
+  border-bottom: 1px solid #dcd6cb;
+  padding-bottom: 1.5rem;
+}
+
+.hub-title {
+  font-family: "Playfair Display", serif;
+  font-size: 2.5rem;
+  color: #1a1816;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin: 0 0 0.5rem 0;
+  text-transform: uppercase;
+}
+
+.hub-subtitle {
+  font-family: "Old Standard TT", serif;
+  color: #6b655c;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+/* =========================================================
+   CARDS BASE & PREMIUM STYLING
+========================================================= */
+.hub-card {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid #dcd6cb;
+  border-radius: 12px;
+  padding: 2rem;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hub-card h2 {
+  font-family: "Playfair Display", serif;
+  font-size: 1.4rem;
+  color: #1a1816;
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+}
+
+.hub-card p {
+  font-family: "Old Standard TT", serif;
+  color: #554f46;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* =========================================================
+   ACTIVE CARD & ANIMATIONS
+========================================================= */
+.hub-card--active {
+  border-color: #b5aca0;
+  background: linear-gradient(135deg, #ffffff 0%, #fcf9f2 100%);
+}
+
+.hub-card--active:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 35px rgba(27, 25, 22, 0.08);
+  border-color: #003f22;
+}
+
+/* Click feedback animation */
+.hub-card--active:active {
+  transform: translateY(-2px) scale(0.98);
+}
+
+.hub-arrow-icon {
+  margin-top: 1.5rem;
+  color: #003f22;
+  display: flex;
+  align-items: center;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hub-card--active:hover .hub-arrow-icon {
+  transform: translateX(6px);
+}
+
+/* =========================================================
+   DISABLED CARDS & COMING SOON RIBBON
+========================================================= */
+.hub-card--disabled {
+  background: #f7f4ee;
+  opacity: 0.75;
+  cursor: not-allowed;
+  border-color: #e5e0d8;
+}
+
+/* Diagonal Corner Ribbon */
+.hub-ribbon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 110px;
+  height: 110px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hub-ribbon span {
+  position: absolute;
+  top: 19px;
+  right: -28px;
+  transform: rotate(45deg);
+  width: 120px;
+  background: #7a6e5d;
+  color: #ffffff;
+  text-align: center;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  padding: 4px 0;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}

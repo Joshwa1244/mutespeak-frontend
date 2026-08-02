@@ -1,0 +1,344 @@
+/* ===============================================================
+   PREMIUM REFINED INTRO SEQUENCE (MOBILE OPTIMIZED)
+================================================================ */
+.news-intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: #eaddc5; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  
+  animation: overlayFadeOut 2.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.news-intro-paper {
+  width: 100%;
+  height: 100%;
+  
+  background-color: #eaddc5;
+  background-image:
+    radial-gradient(circle, transparent 50%, rgba(101, 67, 33, 0.25) 150%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.25'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='wrinkleFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.015' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23wrinkleFilter)' opacity='0.2'/%3E%3C/svg%3E");
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  
+  /* Added safe padding so text never touches the device edges on mobile */
+  padding: 1.5rem; 
+  box-sizing: border-box;
+  gap: 1rem;
+  
+  user-select: none;
+  -webkit-user-select: none;
+  
+  animation: refinedPaperSequence 2.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* =========================================================
+   INTRO TYPOGRAPHY & REVEALS
+========================================================= */
+.news-intro-subtitle {
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: #7d7568; 
+  
+  opacity: 0;
+  animation: subtitleReveal 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: 0.1s;
+}
+
+.news-intro-title {
+  font-family: "Playfair Display", serif;
+  font-size: 2.2rem; /* Compact scale for mobile screens */
+  letter-spacing: 1.5px;
+  margin: 0;
+  text-transform: uppercase;
+  color: #1a1816; 
+  border-bottom: 2px solid #2b2824;
+  padding-bottom: 1rem;
+  max-width: 90%;
+  
+  opacity: 0;
+  transform: translateY(15px);
+  animation: titleReveal 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: 0.2s;
+}
+
+/* Desktop Scale Up */
+@media (min-width: 768px) {
+  .news-intro-subtitle {
+    font-size: 0.85rem;
+    letter-spacing: 0.3em;
+  }
+  .news-intro-title {
+    font-size: 4rem; /* Matches desktop masthead */
+    letter-spacing: 2px;
+    padding-bottom: 1.5rem;
+  }
+}
+
+/* =========================================================
+   KEYFRAMES
+========================================================= */
+@keyframes refinedPaperSequence {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(6px);
+  }
+  15%, 80% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px); 
+    filter: blur(4px);
+  }
+}
+
+@keyframes overlayFadeOut {
+  0%, 85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes subtitleReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px);
+    letter-spacing: 0.1em;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    letter-spacing: 0.25em;
+  }
+}
+
+@keyframes titleReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* ---------------------------------------------------------------
+   PAGE CONTAINER & BACKGROUND
+---------------------------------------------------------------- */
+.news-page {
+  position: relative;
+  
+  /* Stretches to fill the AppShell content area */
+  width: 100%;
+  min-height: 100%; 
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+
+  /* THE PADDING BYPASS TRICK:
+     If your AppShell has padding (e.g., 1rem or 16px), this pulls the 
+     background out to the very edges so it touches the header and footer. 
+     Adjust the '1rem' to perfectly match whatever padding your AppShell uses. */
+  margin: -1rem;
+  width: calc(100% + 2rem);
+  
+  /* Required for the 3D tilt animation to have depth */
+  perspective: 1200px; 
+
+  /* Aged Paper Texture */
+  background-color: #eaddc5;
+  background-image:
+    radial-gradient(circle, transparent 50%, rgba(101, 67, 33, 0.25) 150%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.25'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='wrinkleFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.015' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23wrinkleFilter)' opacity='0.2'/%3E%3C/svg%3E");
+  
+  font-family: "Old Standard TT", serif;
+  color: #2b2824;
+}
+/* ---------------------------------------------------------------
+   CONTENT WRAPPER & 3D ANIMATION
+---------------------------------------------------------------- */
+.news-content-wrapper {
+  padding: 3rem 4rem;
+  max-width: 1200px;
+  margin: 0 auto; /* Keeps the text from spanning too wide on large monitors */
+  position: relative;
+
+  /* Premium 3D Entry Animation */
+  animation: premiumPaperEntry 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: center bottom;
+}
+
+@keyframes premiumPaperEntry {
+  0% {
+    opacity: 0;
+    transform: translateY(60px) rotateX(12deg) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotateX(0) scale(1);
+  }
+}
+
+/* ---------------------------------------------------------------
+   BACK BUTTON
+---------------------------------------------------------------- */
+.news-back-button {
+  position: absolute;
+  top: 3rem;
+  left: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: none;
+  color: #4a453f;
+  font-family: "Old Standard TT", serif;
+  font-size: 1.1rem;
+  font-variant: small-caps;
+  letter-spacing: 1px;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  mix-blend-mode: multiply;
+}
+
+.news-back-button:hover {
+  color: #1a1816;
+  transform: translateX(-6px);
+}
+
+.news-loading {
+  text-align: center;
+  padding: 3rem;
+  font-family: "Old Standard TT", serif;
+  font-style: italic;
+  color: #4a453f;
+}
+
+/* ---------------------------------------------------------------
+   TYPOGRAPHY & INK ABSORPTION
+---------------------------------------------------------------- */
+.news-masthead,
+.news-article {
+  mix-blend-mode: multiply;
+  text-shadow: 0px 0px 0.8px rgba(43, 40, 36, 0.4);
+}
+
+.news-masthead {
+  text-align: center;
+  border-bottom: 4px double #2b2824;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1rem;
+}
+
+.news-masthead h1 {
+  font-family: "Playfair Display", serif;
+  font-size: 4rem;
+  letter-spacing: 2px;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.news-dateline {
+  font-variant: small-caps;
+  letter-spacing: 1px;
+  font-size: 1.2rem;
+  margin-top: 0.5rem;
+}
+
+.news-article {
+  column-count: 2;
+  column-gap: 3rem;
+  border-bottom: 1px solid #7d7568;
+  padding-bottom: 2.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.news-article h2 {
+  column-span: all;
+  font-family: "Playfair Display", serif;
+  font-size: 1.8rem;
+  margin-bottom: 1.2rem;
+  line-height: 1.3;
+}
+
+.news-body {
+  white-space: pre-wrap;
+  margin-top: 0;
+  line-height: 1.7;
+  text-align: justify;
+}
+
+.news-body::first-letter {
+  font-size: 3.5rem;
+  float: left;
+  line-height: 0.85;
+  padding-right: 0.5rem;
+  font-family: "Playfair Display", serif;
+  color: #1a1816;
+}
+
+.news-body--empty {
+  column-span: all;
+  font-style: italic;
+  color: #4a453f;
+  text-align: left;
+}
+
+.news-source {
+  column-span: all;
+  display: inline-block;
+  margin-top: 1.5rem;
+  font-size: 0.95rem;
+  color: #4a453f;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: color 0.2s ease;
+}
+
+.news-source:hover {
+  color: #003f22;
+}
+
+/* ---------------------------------------------------------------
+   MOBILE RESPONSIVENESS
+---------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .news-content-wrapper {
+    /* Pushes content down so the masthead doesn't overlap the back button */
+    padding: 5rem 1.5rem 2rem 1.5rem; 
+  }
+
+  .news-back-button {
+    top: 1.5rem;
+    left: 1rem;
+  }
+
+  .news-masthead h1 {
+    font-size: 2.5rem;
+  }
+
+  .news-article {
+    column-count: 1; 
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+}
