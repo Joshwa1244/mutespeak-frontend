@@ -33,7 +33,7 @@ export default function News() {
       .finally(() => setLoading(false));
   }, []);
 
- // -------------------------------------------------------------
+  // -------------------------------------------------------------
   // 1. CINEMATIC INTRO SCREEN
   // -------------------------------------------------------------
   if (showIntro) {
@@ -48,12 +48,19 @@ export default function News() {
   }
 
   // -------------------------------------------------------------
-  // 2. BACKGROUND LOADING STATE (If API is slower than 2 seconds)
+  // 2. THEMATIC PRINTING PRESS LOADING STATE
   // -------------------------------------------------------------
   if (loading) {
     return (
       <div className="news-page">
-        <p className="news-loading">Finalizing the print...</p>
+        <div className="news-loading-container">
+          <div className="news-press-loader">
+            <span className="dot"></span>
+            <span className="dot"></span>
+            <span className="dot"></span>
+          </div>
+          <p className="news-loading-text">Setting the type &amp; pressing the daily edition...</p>
+        </div>
       </div>
     );
   }

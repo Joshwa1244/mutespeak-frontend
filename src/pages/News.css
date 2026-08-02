@@ -30,7 +30,6 @@
   justify-content: center;
   text-align: center;
   
-  /* Added safe padding so text never touches the device edges on mobile */
   padding: 1.5rem; 
   box-sizing: border-box;
   gap: 1rem;
@@ -59,7 +58,7 @@
 
 .news-intro-title {
   font-family: "Playfair Display", serif;
-  font-size: 2.2rem; /* Compact scale for mobile screens */
+  font-size: 2.2rem;
   letter-spacing: 1.5px;
   margin: 0;
   text-transform: uppercase;
@@ -74,14 +73,13 @@
   animation-delay: 0.2s;
 }
 
-/* Desktop Scale Up */
 @media (min-width: 768px) {
   .news-intro-subtitle {
     font-size: 0.85rem;
     letter-spacing: 0.3em;
   }
   .news-intro-title {
-    font-size: 4rem; /* Matches desktop masthead */
+    font-size: 4rem;
     letter-spacing: 2px;
     padding-bottom: 1.5rem;
   }
@@ -137,14 +135,11 @@
   }
 }
 
-
 /* ---------------------------------------------------------------
    PAGE CONTAINER & BACKGROUND
 ---------------------------------------------------------------- */
 .news-page {
   position: relative;
-  
-  /* Stretches to fill the AppShell content area */
   width: 100%;
   min-height: 100%; 
   flex-grow: 1;
@@ -152,17 +147,11 @@
   flex-direction: column;
   box-sizing: border-box;
 
-  /* THE PADDING BYPASS TRICK:
-     If your AppShell has padding (e.g., 1rem or 16px), this pulls the 
-     background out to the very edges so it touches the header and footer. 
-     Adjust the '1rem' to perfectly match whatever padding your AppShell uses. */
   margin: -1rem;
   width: calc(100% + 2rem);
   
-  /* Required for the 3D tilt animation to have depth */
   perspective: 1200px; 
 
-  /* Aged Paper Texture */
   background-color: #eaddc5;
   background-image:
     radial-gradient(circle, transparent 50%, rgba(101, 67, 33, 0.25) 150%),
@@ -172,16 +161,16 @@
   font-family: "Old Standard TT", serif;
   color: #2b2824;
 }
+
 /* ---------------------------------------------------------------
    CONTENT WRAPPER & 3D ANIMATION
 ---------------------------------------------------------------- */
 .news-content-wrapper {
   padding: 3rem 4rem;
   max-width: 1200px;
-  margin: 0 auto; /* Keeps the text from spanning too wide on large monitors */
+  margin: 0 auto;
   position: relative;
 
-  /* Premium 3D Entry Animation */
   animation: premiumPaperEntry 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   transform-origin: center bottom;
 }
@@ -195,6 +184,67 @@
     opacity: 1;
     transform: translateY(0) rotateX(0) scale(1);
   }
+}
+
+/* ---------------------------------------------------------------
+   LOADING PRESS ANIMATION STYLES
+---------------------------------------------------------------- */
+.news-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+  gap: 1.5rem;
+  margin: 0 auto;
+}
+
+.news-press-loader {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.news-press-loader .dot {
+  width: 12px;
+  height: 12px;
+  background-color: #2b2824;
+  border-radius: 50%;
+  animation: pressBounce 1.4s infinite ease-in-out both;
+  mix-blend-mode: multiply;
+}
+
+.news-press-loader .dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.news-press-loader .dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.news-loading-text {
+  font-family: "Old Standard TT", serif;
+  font-size: 1.2rem;
+  font-style: italic;
+  color: #4a453f;
+  letter-spacing: 0.5px;
+  mix-blend-mode: multiply;
+  animation: textPulse 2s infinite ease-in-out;
+}
+
+@keyframes pressBounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.3;
+  }
+  40% {
+    transform: scale(1.0);
+    opacity: 1;
+  }
+}
+
+@keyframes textPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }
 
 /* ---------------------------------------------------------------
@@ -223,14 +273,6 @@
 .news-back-button:hover {
   color: #1a1816;
   transform: translateX(-6px);
-}
-
-.news-loading {
-  text-align: center;
-  padding: 3rem;
-  font-family: "Old Standard TT", serif;
-  font-style: italic;
-  color: #4a453f;
 }
 
 /* ---------------------------------------------------------------
@@ -323,7 +365,6 @@
 ---------------------------------------------------------------- */
 @media (max-width: 768px) {
   .news-content-wrapper {
-    /* Pushes content down so the masthead doesn't overlap the back button */
     padding: 5rem 1.5rem 2rem 1.5rem; 
   }
 
