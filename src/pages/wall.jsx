@@ -84,13 +84,13 @@ const WallCard = memo(function WallCard({ student, index, left, top, rotate, del
   const hasRealPhoto = Boolean(student.profilePictureUrl) && !photoFailed;
   const photoSrc = hasRealPhoto ? student.profilePictureUrl : cartoonAvatarUrl(student.id ?? student.name);
 
-  // ✅ CSS fix: Swap from `left/top` positioning to a pure `translate3d` matrix.
-  // This forces the iOS GPU to snapshot the entire card (shadows included) as a flat texture.
+  // ✅ iOS GPU FIX: We REMOVED `willChange: "transform"` from individual cards. 
+  // `.wall-board` already has it. Setting it on 100+ child elements crashes iOS Safari's 
+  // GPU memory limit, causing severe dragging lag. `translate3d` alone is enough.
   const style = {
     position: "absolute",
     top: 0,
     left: 0,
-    willChange: "transform",
     transform: `translate3d(${left}px, ${top}px, 0) rotate(${rotate}deg)`,
     animationDelay: `${delay}ms`,
   };
@@ -300,21 +300,28 @@ export default function WallPage() {
   }, [stopMomentum]);
 
 
-  // ✅ JS FIX: Force Safari to respect touch constraints
+  // ✅ iOS RUBBER-BAND FIX: We lock the entire document body while this component is mounted.
+  // Safari frequently ignores viewport-level preventDefault if a swipe is fast enough. 
   useEffect(() => {
+    document.body.style.overscrollBehavior = 'none';
+    document.body.style.overflow = 'hidden';
+
     const viewport = viewportRef.current;
     if (!viewport) return;
 
-    // By attaching a non-passive touchmove listener directly to the DOM, 
-    // we bypass React's synthetic event limitations and aggressively shut down 
-    // Safari's attempt to trigger rubber-band scrolling during drags.
     const killNativeSafariScroll = (e) => {
-      e.preventDefault(); 
+      if (e.cancelable) {
+        e.preventDefault(); 
+      }
     };
 
-    // passive: false is mandatory here, otherwise iOS ignores the preventDefault
     viewport.addEventListener("touchmove", killNativeSafariScroll, { passive: false });
-    return () => viewport.removeEventListener("touchmove", killNativeSafariScroll);
+    
+    return () => {
+      document.body.style.overscrollBehavior = '';
+      document.body.style.overflow = '';
+      viewport.removeEventListener("touchmove", killNativeSafariScroll);
+    };
   }, []);
 
 
@@ -341,7 +348,6 @@ export default function WallPage() {
   const onPointerMove = (e) => {
     if (!dragState.current.dragging) return;
     
-    // Fallback preventDefault for standard desktop browsers
     e.preventDefault();
 
     const now = performance.now();
@@ -424,7 +430,7 @@ export default function WallPage() {
           font-family: 'IBM Plex Sans', system-ui, sans-serif;
           color: var(--cream);
           box-sizing: border-box;
-          overscroll-behavior: contain;
+          overscroll-behavior: none;
         }
         .wall-root *, .wall-root *::before, .wall-root *::after {
           box-sizing: border-box;
@@ -509,8 +515,6 @@ export default function WallPage() {
         .wall-viewport:active { cursor: grabbing; }
         .wall-viewport:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
 
-        /* Soft vignette behind the cards, so the brick pattern doesn't fight
-           for attention at the edges of the screen. */
         .wall-viewport::before {
           content: "";
           position: absolute;
@@ -519,20 +523,15 @@ export default function WallPage() {
           pointer-events: none;
           z-index: 0;
         }
-        /* Faint grain over everything for a bit of tactile, non-digital texture. */
+        
         .wall-viewport::after {
           content: "";
           position: absolute;
           inset: 0;
-          /* Use a pre-rendered semi-transparent noise PNG instead of an SVG filter */
-          background-image: url("https://grainy-gradients.vercel.app/noise.svg"); /* Or use your own lightweight static noise image asset */
-          
-          /* Strictly use opacity. DO NOT use mix-blend-mode */
-          opacity: 0.15; /* Slightly higher opacity since we aren't using overlay */
+          background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+          opacity: 0.15;
           pointer-events: none;
           z-index: 3;
-          
-          /* Prevent the pseudo-element from forcing repaints */
           transform: translateZ(0); 
         }
 
@@ -543,9 +542,7 @@ export default function WallPage() {
           backface-visibility: hidden;
           -webkit-backface-visibility: hidden;
         }
-        /* Only applied briefly when a drag overshoots the edge and springs
-           back — never during normal dragging or the momentum glide, both
-           of which need to track the finger/physics with zero added lag. */
+        
         .wall-board-snap {
           transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
         }
@@ -563,8 +560,7 @@ export default function WallPage() {
           from { opacity: 0; }
           to { opacity: 1; }
         }
-        /* Hover lift only for devices with a real pointer — on touch, :hover
-           sticks after a tap and makes the last-touched card look stuck. */
+        
         @media (hover: hover) and (pointer: fine) {
           .wall-card:hover { transform: translateY(-6px) scale(1.05) rotate(0deg) !important; z-index: 5; }
         }
@@ -599,6 +595,8 @@ export default function WallPage() {
           object-fit: cover;
           display: block;
           -webkit-touch-callout: none;
+          /* ✅ iOS DRAG HIJACK FIX: Prevents Safari from stealing touches on images */
+          pointer-events: none;
         }
         .wall-name {
           font-family: 'Caveat', cursive;
