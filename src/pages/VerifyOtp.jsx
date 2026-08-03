@@ -142,8 +142,9 @@ export default function VerifyOtp() {
 
       {resent && (
         <p className="banner-success">
-          A new verification code was sent.
-        </p>
+  We've sent you a new verification code to the Registered mail Address! 
+  Can't find it? Make sure to check your spam folder.
+</p>
       )}
 
 
