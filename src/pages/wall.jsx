@@ -516,15 +516,20 @@ export default function WallPage() {
         }
         /* Faint grain over everything for a bit of tactile, non-digital texture. */
         .wall-viewport::after {
-          content: "";
-          position: absolute;
-          inset: 0;
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-          opacity: 0.05;
-          mix-blend-mode: overlay;
-          pointer-events: none;
-          z-index: 3;
-        }
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* Use a pre-rendered semi-transparent noise PNG instead of an SVG filter */
+  background-image: url("https://grainy-gradients.vercel.app/noise.svg"); /* Or use your own lightweight static noise image asset */
+  
+  /* Strictly use opacity. DO NOT use mix-blend-mode */
+  opacity: 0.15; /* Slightly higher opacity since we aren't using overlay */
+  pointer-events: none;
+  z-index: 3;
+  
+  /* Prevent the pseudo-element from forcing repaints */
+  transform: translateZ(0); 
+}
 
         .wall-board {
           position: relative;
