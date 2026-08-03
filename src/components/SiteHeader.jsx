@@ -92,7 +92,7 @@ export default function SiteHeader() {
 
             <NavLink
 
-              to="/how-it-works"
+              to="/wall"
 
               className={({
                 isActive,
@@ -108,7 +108,7 @@ export default function SiteHeader() {
 
             >
 
-              How it works
+              The Wall
 
             </NavLink>
 
