@@ -84,9 +84,6 @@ const WallCard = memo(function WallCard({ student, index, left, top, rotate, del
   const hasRealPhoto = Boolean(student.profilePictureUrl) && !photoFailed;
   const photoSrc = hasRealPhoto ? student.profilePictureUrl : cartoonAvatarUrl(student.id ?? student.name);
 
-  // ✅ iOS GPU FIX: We REMOVED `willChange: "transform"` from individual cards. 
-  // `.wall-board` already has it. Setting it on 100+ child elements crashes iOS Safari's 
-  // GPU memory limit, causing severe dragging lag. `translate3d` alone is enough.
   const style = {
     position: "absolute",
     top: 0,
@@ -299,9 +296,6 @@ export default function WallPage() {
     };
   }, [stopMomentum]);
 
-
-  // ✅ iOS RUBBER-BAND FIX: We lock the entire document body while this component is mounted.
-  // Safari frequently ignores viewport-level preventDefault if a swipe is fast enough. 
   useEffect(() => {
     document.body.style.overscrollBehavior = 'none';
     document.body.style.overflow = 'hidden';
@@ -541,6 +535,9 @@ export default function WallPage() {
           will-change: transform;
           backface-visibility: hidden;
           -webkit-backface-visibility: hidden;
+          
+          /* ✅ Explicitly tell Safari the board itself allows NO native gestures */
+          touch-action: none; 
         }
         
         .wall-board-snap {
@@ -553,6 +550,14 @@ export default function WallPage() {
           flex-direction: column;
           align-items: center;
           user-select: none;
+          
+          /* ✅ THE CORE FIX: touch-action does not inherit. 
+             We must explicitly strip native gestures off the cards themselves so 
+             iOS doesn't hijack the touch when you drag from the middle of the screen. */
+          touch-action: none; 
+          -webkit-touch-callout: none; /* Prevents long-press image/text popups */
+          -webkit-user-drag: none; /* Prevents ghost dragging of the element */
+          
           transition: transform 0.2s ease;
           animation: wall-card-fade 0.35s ease both;
         }
@@ -595,7 +600,6 @@ export default function WallPage() {
           object-fit: cover;
           display: block;
           -webkit-touch-callout: none;
-          /* ✅ iOS DRAG HIJACK FIX: Prevents Safari from stealing touches on images */
           pointer-events: none;
         }
         .wall-name {
