@@ -35,10 +35,24 @@ import {
  *   frame, edges have a little elastic give while dragging, and a
  *   flick keeps gliding with momentum/friction like a native scroll
  *   view instead of stopping dead when you lift your finger.
+ *
+ * iOS perf note (read this before touching drag code again):
+ * - The board's translate is intentionally NOT driven through React
+ *   state during a drag or momentum glide. Every pointermove/rAF tick
+ *   writes `boardRef.current.style.transform` directly. Doing this via
+ *   setState instead (the original approach) forces a full WallPage
+ *   re-render up to 60x/sec — invisible on Chrome/Android's engine,
+ *   but the main cause of "stuck/hangy" dragging on iOS Safari's
+ *   JS engine. `translate` state is only "committed" (synced from the
+ *   ref) at rest points — drag end, momentum end, resize, keyboard
+ *   nav — where a re-render is cheap because it isn't happening every
+ *   frame. Any new setState you add to a pointermove/rAF-loop path
+ *   will reintroduce the same iOS jank — don't.
  * ------------------------------------------------------------
  */
 
-const API_BASE_URL = 
+const API_BASE_URL =
+
 //"http://localhost:8080";
 "https://site--mutespeak-backend--22t95wnlrvvt.code.run";
 
@@ -88,8 +102,7 @@ const WallCard = memo(function WallCard({ student, index, left, top, rotate, del
     position: "absolute",
     left,
     top,
-    // ✅ Added translateZ(0) to force iOS GPU to rasterize the card and its shadows
-    transform: `translateZ(0) rotate(${rotate}deg)`,
+    transform: `rotate(${rotate}deg)`,
     animationDelay: `${delay}ms`,
   };
 
@@ -124,16 +137,16 @@ export default function WallPage() {
   const [isSnapping, setIsSnapping] = useState(false);
 
   const viewportRef = useRef(null);
-  // ✅ Added direct ref to the board to bypass React re-renders during drags
-  const boardRef = useRef(null); 
-  
+  const boardRef = useRef(null);
   const dragState = useRef({ dragging: false, startX: 0, startY: 0, startTx: 0, startTy: 0 });
   const hasCenteredOnce = useRef(false);
 
-  // ✅ React state `translate` has been completely removed to save CPU cycles.
-  // We strictly use translateRef to track position and write directly to the DOM.
+  // `translate` (state) only backs the *initial* inline style and any
+  // deliberate low-frequency updates (resize, keyboard nav, snap/rest).
+  // `translateRef` is the source of truth during drag/momentum and is
+  // written straight to the DOM — see the iOS perf note in the file header.
+  const [translate, setTranslate] = useState({ x: 0, y: 0 });
   const translateRef = useRef({ x: 0, y: 0 });
-  const rafRef = useRef(null);
   const momentumRef = useRef(null);
   const snapTimeoutRef = useRef(null);
   const velocityRef = useRef({ vx: 0, vy: 0 });
@@ -240,29 +253,19 @@ export default function WallPage() {
     [viewportSize, boardWidth, boardHeight]
   );
 
-  // ✅ Rewritten to directly update the DOM element, bypassing React's VDOM cycle.
-  const applyTranslate = useCallback((next, immediate = false) => {
+  // Writes the transform straight to the board DOM node every call (cheap,
+  // no re-render — this is what runs on every pointermove and every
+  // momentum rAF tick). Only pass `commit=true` at rest points (drag end,
+  // momentum end, resize, keyboard nav, snap-back) to also sync React
+  // state — see the iOS perf note at the top of the file for why this
+  // split exists and why it must stay this way.
+  const applyTranslate = useCallback((next, commit = false) => {
     translateRef.current = next;
-
-    const updateDom = () => {
-      if (boardRef.current) {
-        boardRef.current.style.transform = `translate3d(${translateRef.current.x}px, ${translateRef.current.y}px, 0)`;
-      }
-    };
-
-    if (immediate) {
-      if (rafRef.current != null) {
-        cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-      }
-      updateDom();
-    } else {
-      if (rafRef.current == null) {
-        rafRef.current = requestAnimationFrame(() => {
-          rafRef.current = null;
-          updateDom();
-        });
-      }
+    if (boardRef.current) {
+      boardRef.current.style.transform = `translate3d(${next.x}px, ${next.y}px, 0)`;
+    }
+    if (commit) {
+      setTranslate(next);
     }
   }, []);
 
@@ -274,7 +277,9 @@ export default function WallPage() {
   }, []);
 
   // Lets a flick keep gliding and decelerate, like a native scroll view,
-  // instead of stopping the instant the finger lifts.
+  // instead of stopping the instant the finger lifts. Runs as a direct-DOM
+  // write every frame; only commits to React state once, when the glide
+  // finally settles.
   const startMomentum = useCallback(
     (vx, vy) => {
       let vel = { x: vx * 16, y: vy * 16 };
@@ -284,10 +289,11 @@ export default function WallPage() {
         vel.y *= friction;
         if (Math.hypot(vel.x, vel.y) < 0.4) {
           momentumRef.current = null;
+          applyTranslate(translateRef.current, true);
           return;
         }
         const next = clamp(translateRef.current.x + vel.x, translateRef.current.y + vel.y);
-        applyTranslate(next, true);
+        applyTranslate(next);
         momentumRef.current = requestAnimationFrame(step);
       };
       momentumRef.current = requestAnimationFrame(step);
@@ -315,7 +321,6 @@ export default function WallPage() {
   useEffect(() => {
     return () => {
       stopMomentum();
-      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
       if (snapTimeoutRef.current != null) clearTimeout(snapTimeoutRef.current);
     };
   }, [stopMomentum]);
@@ -327,6 +332,13 @@ export default function WallPage() {
       snapTimeoutRef.current = null;
       setIsSnapping(false);
     }
+    // Sync any position reached via uncommitted direct-DOM writes (e.g. a
+    // momentum glide interrupted mid-flight) into state before the
+    // setShowHint below causes a re-render — otherwise that re-render would
+    // regenerate the board's inline style from stale `translate` state and
+    // visibly snap it back. Both setState calls are in the same handler, so
+    // React batches them into one render.
+    applyTranslate(translateRef.current, true);
     dragState.current = {
       dragging: true,
       startX: e.clientX,
@@ -358,6 +370,8 @@ export default function WallPage() {
 
     const dx = e.clientX - dragState.current.startX;
     const dy = e.clientY - dragState.current.startY;
+    // Direct DOM write only — no setState here. This is the frame-rate-
+    // critical path; see the iOS perf note at the top of the file.
     applyTranslate(clamp(dragState.current.startTx + dx, dragState.current.startTy + dy, true));
   };
 
@@ -381,6 +395,10 @@ export default function WallPage() {
     const { vx, vy } = velocityRef.current;
     if (!prefersReducedMotion() && Math.hypot(vx, vy) > 0.05) {
       startMomentum(vx, vy);
+    } else {
+      // No fling follows — commit the resting position now, since nothing
+      // else will (normally momentum's own end-of-glide commit does this).
+      applyTranslate(translateRef.current, true);
     }
   };
 
@@ -499,6 +517,7 @@ export default function WallPage() {
           touch-action: none;
           user-select: none;
           -webkit-user-select: none;
+          -webkit-touch-callout: none;
           background-color: var(--brick);
           background-image:
             linear-gradient(335deg, rgba(18, 9, 4, 0.55) 23px, transparent 23px),
@@ -523,20 +542,20 @@ export default function WallPage() {
         }
         /* Faint grain over everything for a bit of tactile, non-digital texture. */
         .wall-viewport::after {
-          content: "";
-          position: absolute;
-          inset: 0;
-          /* Use a pre-rendered semi-transparent noise PNG instead of an SVG filter */
-          background-image: url("https://grainy-gradients.vercel.app/noise.svg"); /* Or use your own lightweight static noise image asset */
-          
-          /* Strictly use opacity. DO NOT use mix-blend-mode */
-          opacity: 0.15; /* Slightly higher opacity since we aren't using overlay */
-          pointer-events: none;
-          z-index: 3;
-          
-          /* Prevent the pseudo-element from forcing repaints */
-          transform: translateZ(0); 
-        }
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* Use a pre-rendered semi-transparent noise PNG instead of an SVG filter */
+  background-image: url("https://grainy-gradients.vercel.app/noise.svg"); /* Or use your own lightweight static noise image asset */
+  
+  /* Strictly use opacity. DO NOT use mix-blend-mode */
+  opacity: 0.15; /* Slightly higher opacity since we aren't using overlay */
+  pointer-events: none;
+  z-index: 3;
+  
+  /* Prevent the pseudo-element from forcing repaints */
+  transform: translateZ(0); 
+}
 
         .wall-board {
           position: relative;
@@ -707,12 +726,12 @@ export default function WallPage() {
         {error && <div className="wall-error">{error}</div>}
         {!error && (
           <div
-            className={`wall-board${isSnapping ? " wall-board-snap" : ""}`}
             ref={boardRef}
+            className={`wall-board${isSnapping ? " wall-board-snap" : ""}`}
             style={{
               width: boardWidth,
               height: boardHeight,
-              transform: `translate3d(${translateRef.current.x}px, ${translateRef.current.y}px, 0)`,
+              transform: `translate3d(${translate.x}px, ${translate.y}px, 0)`,
             }}
           >
             {students.map((s, i) => (
