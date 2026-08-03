@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { useState, useRef, useEffect, useLayoutEffect, useMemo, useCallback } from "react";
 
 /**
  * THE WALL — public page
@@ -13,6 +13,14 @@ import { useState, useRef, useEffect, useMemo, useCallback } from "react";
  * API_BASE_URL below points at localhost:8080 for local dev —
  * swap it for your deployed backend URL (or wire it up as an
  * env var) before shipping this to Vercel.
+ *
+ * Notes for future maintainers:
+ * - Placeholder avatars use DiceBear's "avataaars-neutral" style
+ *   (not "avataaars") since we don't know a student's gender —
+ *   the neutral set drops gendered hair/facial-hair variants.
+ * - Card size, grid shape, and board padding scale down together
+ *   via `isCompact`/`--card-w` on narrow screens so mobile users
+ *   mostly pan vertically instead of hunting around a wide board.
  * ------------------------------------------------------------
  */
 
@@ -40,8 +48,10 @@ function hashSeed(value) {
 
 // Deterministic cartoon avatar for students who haven't uploaded a photo yet —
 // same seed always gives the same face, so it doesn't reshuffle on re-render.
+// "avataaars-neutral" is DiceBear's gender-neutral variant of the set — no
+// assumed gender for a name/id we know nothing else about.
 function cartoonAvatarUrl(seed) {
-  return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(seed)}`;
+  return `https://api.dicebear.com/7.x/avataaars-neutral/svg?seed=${encodeURIComponent(seed)}`;
 }
 
 function WallCard({ student, index, style }) {
@@ -57,8 +67,10 @@ function WallCard({ student, index, style }) {
           <img
             className="wall-photo"
             src={photoSrc}
-            alt=""
+            alt={student.name || "Student photo"}
             draggable={false}
+            loading="lazy"
+            decoding="async"
             onError={() => setPhotoFailed(true)}
           />
         </div>
@@ -71,12 +83,14 @@ function WallCard({ student, index, style }) {
 
 export default function WallPage() {
   const [students, setStudents] = useState([]);
+  const [totalCount, setTotalCount] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showHint, setShowHint] = useState(true);
 
   const viewportRef = useRef(null);
   const dragState = useRef({ dragging: false, startX: 0, startY: 0, startTx: 0, startTy: 0 });
+  const hasCenteredOnce = useRef(false);
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
   const [viewportSize, setViewportSize] = useState({ w: 0, h: 0 });
 
@@ -89,7 +103,14 @@ export default function WallPage() {
         const res = await fetch(`${API_BASE_URL}/api/public/wall`);
         if (!res.ok) throw new Error(`Wall request failed: ${res.status}`);
         const data = await res.json();
-        if (!cancelled) setStudents(data.users ?? []);
+        if (!cancelled) {
+          const users = data.users ?? [];
+          setStudents(users);
+          // totalCount can be bigger than the returned user list (pagination,
+          // future page sizing, etc.) — prefer it for the headline count and
+          // only fall back to the rendered list length if it's missing.
+          setTotalCount(typeof data.totalCount === "number" ? data.totalCount : users.length);
+        }
       } catch (e) {
         if (!cancelled) setError("Couldn't load the wall. Try again in a moment.");
       } finally {
@@ -102,7 +123,10 @@ export default function WallPage() {
     };
   }, []);
 
-  useEffect(() => {
+  // Layout effect (not a regular effect) so the board is measured and sized
+  // correctly before the first paint — otherwise mobile briefly renders a
+  // desktop-sized grid for a frame before snapping to the compact one.
+  useLayoutEffect(() => {
     function measure() {
       if (viewportRef.current) {
         setViewportSize({
@@ -116,29 +140,39 @@ export default function WallPage() {
     return () => window.removeEventListener("resize", measure);
   }, []);
 
-  const cellW = 190;
-  const cellH = 230;
-  const skeletonColumns = 6;
-  const columns = Math.max(1, Math.ceil(Math.sqrt((students.length || 1) * 1.5)));
+  // Below this width, shrink cards/spacing and favor a narrower board so a
+  // phone mostly pans up and down instead of hunting side to side.
+  const isCompact = viewportSize.w > 0 && viewportSize.w <= 640;
+  const cardW = isCompact ? 118 : 150;
+  const cellW = isCompact ? 148 : 190;
+  const cellH = isCompact ? 182 : 230;
+  const boardPadX = isCompact ? 40 : 60;
+  const boardPadTop = isCompact ? 70 : 100;
+  const boardPadBottom = isCompact ? 50 : 60;
+  const skeletonColumns = isCompact ? 3 : 6;
+
+  const columns = isCompact
+    ? Math.max(2, Math.min(4, Math.floor((viewportSize.w || 320) / cellW) || 2))
+    : Math.max(1, Math.ceil(Math.sqrt((students.length || 1) * 1.5)));
   const rows = Math.max(1, Math.ceil((students.length || 1) / columns));
-  const boardWidth = columns * cellW + 120;
-  const boardHeight = rows * cellH + 160;
+  const boardWidth = columns * cellW + boardPadX * 2;
+  const boardHeight = rows * cellH + boardPadTop + boardPadBottom;
 
   const cardPositions = useMemo(() => {
     return students.map((s, i) => {
       const seed = hashSeed(s.id);
       const col = i % columns;
       const row = Math.floor(i / columns);
-      const jitterX = (seededRandom(seed * 3.1) - 0.5) * 40;
-      const jitterY = (seededRandom(seed * 7.7) - 0.5) * 30;
+      const jitterX = (seededRandom(seed * 3.1) - 0.5) * (isCompact ? 22 : 40);
+      const jitterY = (seededRandom(seed * 7.7) - 0.5) * (isCompact ? 16 : 30);
       const rotate = (seededRandom(seed * 5.3) - 0.5) * 14;
       return {
-        left: 60 + col * cellW + jitterX,
-        top: 100 + row * cellH + jitterY,
+        left: boardPadX + col * cellW + jitterX,
+        top: boardPadTop + row * cellH + jitterY,
         rotate,
       };
     });
-  }, [students, columns]);
+  }, [students, columns, cellW, isCompact, boardPadX, boardPadTop]);
 
   const clamp = useCallback(
     (x, y) => {
@@ -152,11 +186,19 @@ export default function WallPage() {
     [viewportSize, boardWidth, boardHeight]
   );
 
-  // Center the initial view once we know board + viewport size
+  // Center the view the first time we know board + viewport size. After
+  // that, only re-clamp on resize (don't recenter) — mobile browsers fire
+  // resize constantly as the address bar shows/hides while scrolling, and
+  // recentering on every one of those used to yank the board back under
+  // the user's thumb mid-drag.
   useEffect(() => {
-    if (viewportSize.w && boardWidth) {
+    if (!viewportSize.w || !boardWidth) return;
+    if (!hasCenteredOnce.current) {
       const centered = clamp((viewportSize.w - boardWidth) / 2, (viewportSize.h - boardHeight) / 3);
       setTranslate(centered);
+      hasCenteredOnce.current = true;
+    } else {
+      setTranslate((t) => clamp(t.x, t.y));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewportSize.w, viewportSize.h, boardWidth, boardHeight]);
@@ -175,6 +217,7 @@ export default function WallPage() {
 
   const onPointerMove = (e) => {
     if (!dragState.current.dragging) return;
+    e.preventDefault();
     const dx = e.clientX - dragState.current.startX;
     const dy = e.clientY - dragState.current.startY;
     setTranslate(clamp(dragState.current.startTx + dx, dragState.current.startTy + dy));
@@ -200,31 +243,37 @@ export default function WallPage() {
     }
   };
 
+  const displayCount = totalCount ?? students.length;
+
   return (
-    <div className="wall-root">
+    <div className="wall-root" style={{ "--card-w": `${cardW}px` }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Caveat:wght@700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
         .wall-root {
-          --navy: #141b2e;
-          --navy-deep: #0d1220;
-          --cork-dot: rgba(255,255,255,0.04);
-          --cream: #f5efe0;
+          --wall-base: #241509;
+          --brick: #6b4327;
+          --brick-shadow: #1c0f07;
+          --cream: #f3ead6;
           --gold: #d9ab35;
           --gold-dim: #a9822c;
           --ink: #1c1810;
-          --muted: #9aa3b8;
+          --muted: #cdb79d;
           position: relative;
           width: 100%;
           height: 100vh;
           min-height: 560px;
           overflow: hidden;
-          background: var(--navy);
+          background: var(--wall-base);
           font-family: 'IBM Plex Sans', system-ui, sans-serif;
           color: var(--cream);
           box-sizing: border-box;
+          overscroll-behavior: contain;
         }
-        .wall-root *, .wall-root *::before, .wall-root *::after { box-sizing: border-box; }
+        .wall-root *, .wall-root *::before, .wall-root *::after {
+          box-sizing: border-box;
+          -webkit-tap-highlight-color: transparent;
+        }
 
         .wall-header {
           position: absolute;
@@ -247,7 +296,7 @@ export default function WallPage() {
           line-height: 1.35;
           margin: 0 0 10px;
           color: var(--cream);
-          text-shadow: 3px 3px 0 var(--navy-deep);
+          text-shadow: 3px 3px 0 var(--brick-shadow);
         }
         .wall-tagline {
           font-size: 14px;
@@ -258,7 +307,7 @@ export default function WallPage() {
           font-family: 'IBM Plex Mono', monospace;
           font-size: 13px;
           color: var(--gold);
-          background: rgba(0,0,0,0.25);
+          background: rgba(0,0,0,0.28);
           display: inline-block;
           padding: 4px 10px;
           border: 1px solid var(--gold-dim);
@@ -276,12 +325,13 @@ export default function WallPage() {
           background: var(--gold);
           padding: 10px 16px;
           text-decoration: none;
-          border: 2px solid var(--navy-deep);
-          box-shadow: 4px 4px 0 var(--navy-deep);
+          border: 2px solid var(--brick-shadow);
+          box-shadow: 4px 4px 0 var(--brick-shadow);
           transition: transform 0.15s ease, box-shadow 0.15s ease;
         }
-        .wall-cta:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--navy-deep); }
-        .wall-cta:active { transform: translate(0,0); box-shadow: 2px 2px 0 var(--navy-deep); }
+        .wall-cta:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--brick-shadow); }
+        .wall-cta:active { transform: translate(0,0); box-shadow: 2px 2px 0 var(--brick-shadow); }
+        .wall-cta:focus-visible { outline: 2px solid var(--cream); outline-offset: 2px; }
 
         .wall-viewport {
           position: absolute;
@@ -289,45 +339,94 @@ export default function WallPage() {
           overflow: hidden;
           cursor: grab;
           touch-action: none;
-          background-image: radial-gradient(var(--cork-dot) 1px, transparent 1px);
-          background-size: 14px 14px;
-          background-color: var(--navy);
+          user-select: none;
+          -webkit-user-select: none;
+          background-color: var(--brick);
+          background-image:
+            linear-gradient(335deg, rgba(18, 9, 4, 0.55) 23px, transparent 23px),
+            linear-gradient(155deg, rgba(18, 9, 4, 0.55) 23px, transparent 23px),
+            linear-gradient(335deg, rgba(18, 9, 4, 0.55) 23px, transparent 23px),
+            linear-gradient(155deg, rgba(18, 9, 4, 0.55) 23px, transparent 23px);
+          background-size: 58px 58px;
+          background-position: 0px 2px, 4px 35px, 29px 31px, 34px 6px;
         }
         .wall-viewport:active { cursor: grabbing; }
         .wall-viewport:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
 
+        /* Soft vignette behind the cards, so the brick pattern doesn't fight
+           for attention at the edges of the screen. */
+        .wall-viewport::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(ellipse at center, transparent 40%, rgba(8, 4, 2, 0.6) 100%);
+          pointer-events: none;
+          z-index: 0;
+        }
+        /* Faint grain over everything for a bit of tactile, non-digital texture. */
+        .wall-viewport::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+          opacity: 0.05;
+          mix-blend-mode: overlay;
+          pointer-events: none;
+          z-index: 3;
+        }
+
         .wall-board { position: relative; overflow: visible; will-change: transform; }
 
         .wall-card {
-          width: 150px;
+          width: var(--card-w, 150px);
           display: flex;
           flex-direction: column;
           align-items: center;
           user-select: none;
           transition: transform 0.2s ease;
+          animation: wall-card-fade 0.35s ease both;
         }
-        .wall-card:hover { transform: translateY(-6px) scale(1.05) rotate(0deg) !important; z-index: 5; }
+        @keyframes wall-card-fade {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        /* Hover lift only for devices with a real pointer — on touch, :hover
+           sticks after a tap and makes the last-touched card look stuck. */
+        @media (hover: hover) and (pointer: fine) {
+          .wall-card:hover { transform: translateY(-6px) scale(1.05) rotate(0deg) !important; z-index: 5; }
+        }
 
         .wall-pin {
           width: 14px;
           height: 14px;
           border-radius: 50%;
           background: radial-gradient(circle at 35% 30%, #f7dd8a, var(--gold) 55%, var(--gold-dim) 100%);
-          box-shadow: 0 3px 4px rgba(0,0,0,0.45);
+          box-shadow: 0 3px 4px rgba(8,4,2,0.55);
           margin-bottom: -7px;
           z-index: 2;
           position: relative;
         }
 
         .wall-photo-frame {
-          width: 150px;
+          width: var(--card-w, 150px);
           background: var(--cream);
           padding: 8px 8px 6px;
-          box-shadow: 0 6px 14px rgba(0,0,0,0.35);
+          box-shadow: 0 8px 16px rgba(10,5,2,0.45);
           border: 1px solid rgba(0,0,0,0.12);
         }
-        .wall-photo-wrap { width: 134px; height: 134px; overflow: hidden; background: #ddd; }
-        .wall-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .wall-photo-wrap {
+          width: calc(var(--card-w, 150px) - 16px);
+          height: calc(var(--card-w, 150px) - 16px);
+          overflow: hidden;
+          background: #e6dcc8;
+        }
+        .wall-photo {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+          -webkit-touch-callout: none;
+        }
         .wall-name {
           font-family: 'Caveat', cursive;
           font-weight: 700;
@@ -350,10 +449,10 @@ export default function WallPage() {
 
         .wall-skeleton {
           position: absolute;
-          width: 150px;
-          height: 178px;
-          background: rgba(255,255,255,0.05);
-          border: 1px dashed rgba(255,255,255,0.12);
+          width: var(--card-w, 150px);
+          height: calc(var(--card-w, 150px) + 28px);
+          background: rgba(255,255,255,0.06);
+          border: 1px dashed rgba(255,255,255,0.14);
           animation: wall-pulse 1.4s ease-in-out infinite;
         }
         @keyframes wall-pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.9; } }
@@ -366,7 +465,7 @@ export default function WallPage() {
           font-family: 'IBM Plex Mono', monospace;
           font-size: 12px;
           color: var(--muted);
-          background: rgba(0,0,0,0.35);
+          background: rgba(0,0,0,0.4);
           padding: 6px 12px;
           border: 1px solid rgba(255,255,255,0.08);
           pointer-events: none;
@@ -391,7 +490,15 @@ export default function WallPage() {
         @media (max-width: 640px) {
           .wall-title { font-size: 17px; }
           .wall-header { max-width: 250px; top: 16px; left: 16px; }
-          .wall-cta { top: 16px; right: 16px; padding: 8px 12px; font-size: 11px; }
+          .wall-cta {
+            top: 16px;
+            right: 16px;
+            padding: 10px 14px;
+            font-size: 11px;
+            min-height: 40px;
+            display: inline-flex;
+            align-items: center;
+          }
           .wall-tagline { display: none; }
         }
       `}</style>
@@ -400,7 +507,9 @@ export default function WallPage() {
         <div className="wall-eyebrow">LOYOLA COLLEGE · MUTESPEAK</div>
         <h1 className="wall-title">THE WALL</h1>
         <p className="wall-tagline">Every face that's joined mutespeak so far.</p>
-        <div className="wall-count">{loading ? "Counting…" : `${students.length} students on the wall`}</div>
+        <div className="wall-count" aria-live="polite">
+          {loading ? "Counting…" : `${displayCount} students on the wall`}
+        </div>
       </header>
 
       <a className="wall-cta" href="/signup">
@@ -411,10 +520,13 @@ export default function WallPage() {
         className="wall-viewport"
         ref={viewportRef}
         tabIndex={0}
+        role="group"
+        aria-label={`Draggable wall of ${displayCount} student photos. Drag, swipe, or use the arrow keys to look around.`}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerLeave={endDrag}
+        onPointerCancel={endDrag}
         onKeyDown={onKeyDown}
       >
         {error && <div className="wall-error">{error}</div>}
@@ -437,6 +549,7 @@ export default function WallPage() {
                   left: cardPositions[i].left,
                   top: cardPositions[i].top,
                   transform: `rotate(${cardPositions[i].rotate}deg)`,
+                  animationDelay: `${Math.min(i * 15, 300)}ms`,
                 }}
               />
             ))}
@@ -446,8 +559,8 @@ export default function WallPage() {
                   key={`sk-${i}`}
                   className="wall-skeleton"
                   style={{
-                    left: 60 + (i % skeletonColumns) * cellW,
-                    top: 100 + Math.floor(i / skeletonColumns) * cellH,
+                    left: boardPadX + (i % skeletonColumns) * cellW,
+                    top: boardPadTop + Math.floor(i / skeletonColumns) * cellH,
                   }}
                 />
               ))}
@@ -455,7 +568,7 @@ export default function WallPage() {
         )}
       </div>
 
-      {showHint && !loading && !error && <div className="wall-hint">Drag to explore the wall</div>}
+      {showHint && !loading && !error && <div className="wall-hint">Drag or swipe to explore the wall</div>}
     </div>
   );
 }
