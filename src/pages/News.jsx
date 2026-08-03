@@ -41,7 +41,7 @@ export default function News() {
       <div className="news-intro-overlay">
         <div className="news-intro-paper">
           <span className="news-intro-subtitle">Campus Announcements</span>
-          <h1 className="news-intro-title">The Loyola Gazette</h1>
+          <h1 className="news-intro-title">The Campus Paper</h1>
         </div>
       </div>
     );
@@ -84,7 +84,7 @@ export default function News() {
         </button>
 
         <header className="news-masthead">
-          <h1>THE LOYOLA GAZETTE</h1>
+          <h1>THE Campus Paper</h1>
           <p className="news-dateline">Campus Announcements, Reprinted Daily</p>
         </header>
 
