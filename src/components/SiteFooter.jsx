@@ -83,6 +83,12 @@ export default function SiteFooter() {
 
           </Link>
 
+          <Link to="/wall">
+
+            The Wall
+
+          </Link>
+
 
           <Link to="/register">
 
