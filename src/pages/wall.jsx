@@ -39,7 +39,6 @@ import {
  */
 
 const API_BASE_URL = 
-
 //"http://localhost:8080";
 "https://site--mutespeak-backend--22t95wnlrvvt.code.run";
 
@@ -89,7 +88,8 @@ const WallCard = memo(function WallCard({ student, index, left, top, rotate, del
     position: "absolute",
     left,
     top,
-    transform: `rotate(${rotate}deg)`,
+    // ✅ Added translateZ(0) to force iOS GPU to rasterize the card and its shadows
+    transform: `translateZ(0) rotate(${rotate}deg)`,
     animationDelay: `${delay}ms`,
   };
 
@@ -124,16 +124,16 @@ export default function WallPage() {
   const [isSnapping, setIsSnapping] = useState(false);
 
   const viewportRef = useRef(null);
+  // ✅ Added direct ref to the board to bypass React re-renders during drags
+  const boardRef = useRef(null); 
+  
   const dragState = useRef({ dragging: false, startX: 0, startY: 0, startTx: 0, startTy: 0 });
   const hasCenteredOnce = useRef(false);
 
-  // `translate` (state) is what actually renders; `translateRef` mirrors it
-  // synchronously so drag/momentum code always reads the true current
-  // position instead of a possibly one-frame-stale closure value.
-  const [translate, setTranslate] = useState({ x: 0, y: 0 });
+  // ✅ React state `translate` has been completely removed to save CPU cycles.
+  // We strictly use translateRef to track position and write directly to the DOM.
   const translateRef = useRef({ x: 0, y: 0 });
   const rafRef = useRef(null);
-  const pendingRef = useRef(null);
   const momentumRef = useRef(null);
   const snapTimeoutRef = useRef(null);
   const velocityRef = useRef({ vx: 0, vy: 0 });
@@ -240,22 +240,29 @@ export default function WallPage() {
     [viewportSize, boardWidth, boardHeight]
   );
 
-  // Writes to the ref immediately (so drag/momentum code always has the
-  // true current value) and to React state either immediately or batched
-  // to at most once per animation frame, so a flood of pointermove events
-  // doesn't force a full re-render per event.
+  // ✅ Rewritten to directly update the DOM element, bypassing React's VDOM cycle.
   const applyTranslate = useCallback((next, immediate = false) => {
     translateRef.current = next;
+
+    const updateDom = () => {
+      if (boardRef.current) {
+        boardRef.current.style.transform = `translate3d(${translateRef.current.x}px, ${translateRef.current.y}px, 0)`;
+      }
+    };
+
     if (immediate) {
-      setTranslate(next);
-      return;
-    }
-    pendingRef.current = next;
-    if (rafRef.current == null) {
-      rafRef.current = requestAnimationFrame(() => {
+      if (rafRef.current != null) {
+        cancelAnimationFrame(rafRef.current);
         rafRef.current = null;
-        setTranslate(pendingRef.current);
-      });
+      }
+      updateDom();
+    } else {
+      if (rafRef.current == null) {
+        rafRef.current = requestAnimationFrame(() => {
+          rafRef.current = null;
+          updateDom();
+        });
+      }
     }
   }, []);
 
@@ -516,20 +523,20 @@ export default function WallPage() {
         }
         /* Faint grain over everything for a bit of tactile, non-digital texture. */
         .wall-viewport::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  /* Use a pre-rendered semi-transparent noise PNG instead of an SVG filter */
-  background-image: url("https://grainy-gradients.vercel.app/noise.svg"); /* Or use your own lightweight static noise image asset */
-  
-  /* Strictly use opacity. DO NOT use mix-blend-mode */
-  opacity: 0.15; /* Slightly higher opacity since we aren't using overlay */
-  pointer-events: none;
-  z-index: 3;
-  
-  /* Prevent the pseudo-element from forcing repaints */
-  transform: translateZ(0); 
-}
+          content: "";
+          position: absolute;
+          inset: 0;
+          /* Use a pre-rendered semi-transparent noise PNG instead of an SVG filter */
+          background-image: url("https://grainy-gradients.vercel.app/noise.svg"); /* Or use your own lightweight static noise image asset */
+          
+          /* Strictly use opacity. DO NOT use mix-blend-mode */
+          opacity: 0.15; /* Slightly higher opacity since we aren't using overlay */
+          pointer-events: none;
+          z-index: 3;
+          
+          /* Prevent the pseudo-element from forcing repaints */
+          transform: translateZ(0); 
+        }
 
         .wall-board {
           position: relative;
@@ -701,10 +708,11 @@ export default function WallPage() {
         {!error && (
           <div
             className={`wall-board${isSnapping ? " wall-board-snap" : ""}`}
+            ref={boardRef}
             style={{
               width: boardWidth,
               height: boardHeight,
-              transform: `translate3d(${translate.x}px, ${translate.y}px, 0)`,
+              transform: `translate3d(${translateRef.current.x}px, ${translateRef.current.y}px, 0)`,
             }}
           >
             {students.map((s, i) => (
