@@ -7,7 +7,7 @@ import {
   useCallback,
   memo,
 } from "react";
-
+ 
 /**
  * THE WALL — public page
  * ------------------------------------------------------------
@@ -35,18 +35,27 @@ import {
  *   frame, edges have a little elastic give while dragging, and a
  *   flick keeps gliding with momentum/friction like a native scroll
  *   view instead of stopping dead when you lift your finger.
+ * - Each card's position/rotation is set via CSS custom properties
+ *   (--tx / --ty / --rot) rather than a raw inline `transform`. The
+ *   hover state (desktop only) needs to add a lift + scale on top
+ *   of that position without discarding it — with a plain inline
+ *   `transform`, the hover rule had to use `!important` to win,
+ *   which replaced the whole transform (including the translate
+ *   that places the card) and snapped every card to the board's
+ *   top-left corner on mouseover. Custom properties let the hover
+ *   rule reuse the same --tx/--ty while only changing the rest.
  * ------------------------------------------------------------
  */
-
+ 
 const API_BASE_URL = 
 //"http://localhost:8080";
 "https://site--mutespeak-backend--22t95wnlrvvt.code.run";
-
+ 
 function seededRandom(seed) {
   const x = Math.sin(seed * 999) * 10000;
   return x - Math.floor(x);
 }
-
+ 
 // ids are UUID strings, not numbers — hash to a stable integer before
 // feeding into seededRandom, or "uuid" * 3.1 comes out NaN and every
 // card collapses onto the same spot on the board.
@@ -58,7 +67,7 @@ function hashSeed(value) {
   }
   return Math.abs(hash) || 1;
 }
-
+ 
 // Deterministic cartoon avatar for students who haven't uploaded a photo yet —
 // same seed always gives the same face, so it doesn't reshuffle on re-render.
 // "avataaars-neutral" is DiceBear's gender-neutral variant of the set — no
@@ -66,7 +75,7 @@ function hashSeed(value) {
 function cartoonAvatarUrl(seed) {
   return `https://api.dicebear.com/7.x/avataaars-neutral/svg?seed=${encodeURIComponent(seed)}`;
 }
-
+ 
 function prefersReducedMotion() {
   return (
     typeof window !== "undefined" &&
@@ -74,7 +83,7 @@ function prefersReducedMotion() {
     window.matchMedia("(prefers-reduced-motion: reduce)").matches
   );
 }
-
+ 
 // Memoized so panning the board (which only changes .wall-board's own
 // transform) never re-renders the individual cards — with a few hundred
 // students that per-frame re-render was the main source of the "stuck"
@@ -83,15 +92,21 @@ const WallCard = memo(function WallCard({ student, index, left, top, rotate, del
   const [photoFailed, setPhotoFailed] = useState(false);
   const hasRealPhoto = Boolean(student.profilePictureUrl) && !photoFailed;
   const photoSrc = hasRealPhoto ? student.profilePictureUrl : cartoonAvatarUrl(student.id ?? student.name);
-
+ 
+  // Position/rotation travel as CSS custom properties, not a literal
+  // `transform` string — see the file-header note on why: it's what
+  // lets the :hover rule in CSS add a lift/scale without stomping on
+  // the translate that actually places the card on the board.
   const style = {
     position: "absolute",
     top: 0,
     left: 0,
-    transform: `translate3d(${left}px, ${top}px, 0) rotate(${rotate}deg)`,
+    "--tx": `${left}px`,
+    "--ty": `${top}px`,
+    "--rot": `${rotate}deg`,
     animationDelay: `${delay}ms`,
   };
-
+ 
   return (
     <div className="wall-card" style={style}>
       <div className="wall-pin" aria-hidden="true" />
@@ -113,7 +128,7 @@ const WallCard = memo(function WallCard({ student, index, left, top, rotate, del
     </div>
   );
 });
-
+ 
 export default function WallPage() {
   const [students, setStudents] = useState([]);
   const [totalCount, setTotalCount] = useState(null);
@@ -121,22 +136,22 @@ export default function WallPage() {
   const [error, setError] = useState(null);
   const [showHint, setShowHint] = useState(true);
   const [isSnapping, setIsSnapping] = useState(false);
-
+ 
   const viewportRef = useRef(null);
   const boardRef = useRef(null); 
   
   const dragState = useRef({ dragging: false, startX: 0, startY: 0, startTx: 0, startTy: 0 });
   const hasCenteredOnce = useRef(false);
-
+ 
   const translateRef = useRef({ x: 0, y: 0 });
   const rafRef = useRef(null);
   const momentumRef = useRef(null);
   const snapTimeoutRef = useRef(null);
   const velocityRef = useRef({ vx: 0, vy: 0 });
   const lastMoveRef = useRef({ x: 0, y: 0, t: 0 });
-
+ 
   const [viewportSize, setViewportSize] = useState({ w: 0, h: 0 });
-
+ 
   useEffect(() => {
     let cancelled = false;
     async function load() {
@@ -162,7 +177,7 @@ export default function WallPage() {
       cancelled = true;
     };
   }, []);
-
+ 
   useLayoutEffect(() => {
     function measure() {
       if (viewportRef.current) {
@@ -176,7 +191,7 @@ export default function WallPage() {
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
   }, []);
-
+ 
   const isCompact = viewportSize.w > 0 && viewportSize.w <= 640;
   const cardW = isCompact ? 118 : 150;
   const cellW = isCompact ? 148 : 190;
@@ -185,14 +200,14 @@ export default function WallPage() {
   const boardPadTop = isCompact ? 70 : 100;
   const boardPadBottom = isCompact ? 50 : 60;
   const skeletonColumns = isCompact ? 3 : 6;
-
+ 
   const columns = isCompact
     ? Math.max(2, Math.min(4, Math.floor((viewportSize.w || 320) / cellW) || 2))
     : Math.max(1, Math.ceil(Math.sqrt((students.length || 1) * 1.5)));
   const rows = Math.max(1, Math.ceil((students.length || 1) / columns));
   const boardWidth = columns * cellW + boardPadX * 2;
   const boardHeight = rows * cellH + boardPadTop + boardPadBottom;
-
+ 
   const cardPositions = useMemo(() => {
     return students.map((s, i) => {
       const seed = hashSeed(s.id);
@@ -208,7 +223,7 @@ export default function WallPage() {
       };
     });
   }, [students, columns, cellW, isCompact, boardPadX, boardPadTop]);
-
+ 
   const clamp = useCallback(
     (x, y, elastic = false) => {
       const minX = Math.min(0, viewportSize.w - boardWidth) - 80;
@@ -224,16 +239,16 @@ export default function WallPage() {
     },
     [viewportSize, boardWidth, boardHeight]
   );
-
+ 
   const applyTranslate = useCallback((next, immediate = false) => {
     translateRef.current = next;
-
+ 
     const updateDom = () => {
       if (boardRef.current) {
         boardRef.current.style.transform = `translate3d(${translateRef.current.x}px, ${translateRef.current.y}px, 0)`;
       }
     };
-
+ 
     if (immediate) {
       if (rafRef.current != null) {
         cancelAnimationFrame(rafRef.current);
@@ -249,14 +264,14 @@ export default function WallPage() {
       }
     }
   }, []);
-
+ 
   const stopMomentum = useCallback(() => {
     if (momentumRef.current != null) {
       cancelAnimationFrame(momentumRef.current);
       momentumRef.current = null;
     }
   }, []);
-
+ 
   const startMomentum = useCallback(
     (vx, vy) => {
       let vel = { x: vx * 16, y: vy * 16 };
@@ -276,7 +291,7 @@ export default function WallPage() {
     },
     [clamp, applyTranslate]
   );
-
+ 
   useEffect(() => {
     if (!viewportSize.w || !boardWidth) return;
     if (!hasCenteredOnce.current) {
@@ -287,7 +302,7 @@ export default function WallPage() {
       applyTranslate(clamp(translateRef.current.x, translateRef.current.y), true);
     }
   }, [viewportSize.w, viewportSize.h, boardWidth, boardHeight, applyTranslate, clamp]);
-
+ 
   useEffect(() => {
     return () => {
       stopMomentum();
@@ -295,20 +310,20 @@ export default function WallPage() {
       if (snapTimeoutRef.current != null) clearTimeout(snapTimeoutRef.current);
     };
   }, [stopMomentum]);
-
+ 
   useEffect(() => {
     document.body.style.overscrollBehavior = 'none';
     document.body.style.overflow = 'hidden';
-
+ 
     const viewport = viewportRef.current;
     if (!viewport) return;
-
+ 
     const killNativeSafariScroll = (e) => {
       if (e.cancelable) {
         e.preventDefault(); 
       }
     };
-
+ 
     viewport.addEventListener("touchmove", killNativeSafariScroll, { passive: false });
     
     return () => {
@@ -317,8 +332,8 @@ export default function WallPage() {
       viewport.removeEventListener("touchmove", killNativeSafariScroll);
     };
   }, []);
-
-
+ 
+ 
   const onPointerDown = (e) => {
     stopMomentum();
     if (snapTimeoutRef.current != null) {
@@ -338,12 +353,12 @@ export default function WallPage() {
     setShowHint(false);
     e.currentTarget.setPointerCapture?.(e.pointerId);
   };
-
+ 
   const onPointerMove = (e) => {
     if (!dragState.current.dragging) return;
     
     e.preventDefault();
-
+ 
     const now = performance.now();
     const dt = Math.max(1, now - lastMoveRef.current.t);
     const ivx = (e.clientX - lastMoveRef.current.x) / dt;
@@ -353,19 +368,19 @@ export default function WallPage() {
       vy: velocityRef.current.vy * 0.7 + ivy * 0.3,
     };
     lastMoveRef.current = { x: e.clientX, y: e.clientY, t: now };
-
+ 
     const dx = e.clientX - dragState.current.startX;
     const dy = e.clientY - dragState.current.startY;
     applyTranslate(clamp(dragState.current.startTx + dx, dragState.current.startTy + dy, true));
   };
-
+ 
   const endDrag = () => {
     if (!dragState.current.dragging) return;
     dragState.current.dragging = false;
-
+ 
     const settled = clamp(translateRef.current.x, translateRef.current.y, false);
     const overshot = settled.x !== translateRef.current.x || settled.y !== translateRef.current.y;
-
+ 
     if (overshot) {
       setIsSnapping(true);
       applyTranslate(settled, true);
@@ -375,13 +390,13 @@ export default function WallPage() {
       }, 320);
       return;
     }
-
+ 
     const { vx, vy } = velocityRef.current;
     if (!prefersReducedMotion() && Math.hypot(vx, vy) > 0.05) {
       startMomentum(vx, vy);
     }
   };
-
+ 
   const onKeyDown = (e) => {
     const step = 60;
     const moves = {
@@ -398,14 +413,14 @@ export default function WallPage() {
       applyTranslate(clamp(translateRef.current.x + dx, translateRef.current.y + dy), true);
     }
   };
-
+ 
   const displayCount = totalCount ?? students.length;
-
+ 
   return (
     <div className="wall-root" style={{ "--card-w": `${cardW}px` }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Caveat:wght@700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
-
+ 
         .wall-root {
           --wall-base: #241509;
           --brick: #6b4327;
@@ -430,7 +445,7 @@ export default function WallPage() {
           box-sizing: border-box;
           -webkit-tap-highlight-color: transparent;
         }
-
+ 
         .wall-header {
           position: absolute;
           top: 28px;
@@ -468,7 +483,7 @@ export default function WallPage() {
           padding: 4px 10px;
           border: 1px solid var(--gold-dim);
         }
-
+ 
         .wall-cta {
           position: absolute;
           top: 32px;
@@ -488,7 +503,7 @@ export default function WallPage() {
         .wall-cta:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--brick-shadow); }
         .wall-cta:active { transform: translate(0,0); box-shadow: 2px 2px 0 var(--brick-shadow); }
         .wall-cta:focus-visible { outline: 2px solid var(--cream); outline-offset: 2px; }
-
+ 
         .wall-viewport {
           position: absolute;
           inset: 0;
@@ -508,7 +523,7 @@ export default function WallPage() {
         }
         .wall-viewport:active { cursor: grabbing; }
         .wall-viewport:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
-
+ 
         .wall-viewport::before {
           content: "";
           position: absolute;
@@ -528,7 +543,7 @@ export default function WallPage() {
           z-index: 3;
           transform: translateZ(0); 
         }
-
+ 
         .wall-board {
           position: relative;
           overflow: visible;
@@ -543,7 +558,7 @@ export default function WallPage() {
         .wall-board-snap {
           transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
         }
-
+ 
         .wall-card {
           width: var(--card-w, 150px);
           display: flex;
@@ -558,6 +573,12 @@ export default function WallPage() {
           -webkit-touch-callout: none; /* Prevents long-press image/text popups */
           -webkit-user-drag: none; /* Prevents ghost dragging of the element */
           
+          /* Position lives here, driven by the --tx/--ty/--rot custom
+             properties set inline per-card. Keeping it in one CSS rule
+             (rather than an inline transform string) lets the :hover
+             rule below layer a lift + scale on top without needing
+             !important and without discarding the card's position. */
+          transform: translate3d(var(--tx, 0px), var(--ty, 0px), 0) rotate(var(--rot, 0deg));
           transition: transform 0.2s ease;
           animation: wall-card-fade 0.35s ease both;
         }
@@ -567,9 +588,14 @@ export default function WallPage() {
         }
         
         @media (hover: hover) and (pointer: fine) {
-          .wall-card:hover { transform: translateY(-6px) scale(1.05) rotate(0deg) !important; z-index: 5; }
+          .wall-card:hover {
+            /* Reuses the same --tx/--ty position, adds a lift + slight
+               grow, and straightens the card out (rotate back to 0). */
+            transform: translate3d(var(--tx, 0px), var(--ty, 0px), 0) translateY(-6px) scale(1.05) rotate(0deg);
+            z-index: 5;
+          }
         }
-
+ 
         .wall-pin {
           width: 14px;
           height: 14px;
@@ -580,7 +606,7 @@ export default function WallPage() {
           z-index: 2;
           position: relative;
         }
-
+ 
         .wall-photo-frame {
           width: var(--card-w, 150px);
           background: var(--cream);
@@ -621,7 +647,7 @@ export default function WallPage() {
           color: var(--muted);
           margin-top: 5px;
         }
-
+ 
         .wall-skeleton {
           position: absolute;
           width: var(--card-w, 150px);
@@ -631,7 +657,7 @@ export default function WallPage() {
           animation: wall-pulse 1.4s ease-in-out infinite;
         }
         @keyframes wall-pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.9; } }
-
+ 
         .wall-hint {
           position: absolute;
           bottom: 20px;
@@ -648,7 +674,7 @@ export default function WallPage() {
           animation: wall-hint-fade 3.5s ease forwards;
         }
         @keyframes wall-hint-fade { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
-
+ 
         .wall-error {
           position: absolute;
           top: 50%; left: 50%;
@@ -657,11 +683,11 @@ export default function WallPage() {
           color: var(--muted);
           text-align: center;
         }
-
+ 
         @media (prefers-reduced-motion: reduce) {
           .wall-card, .wall-cta, .wall-hint, .wall-board-snap { transition: none !important; animation: none !important; }
         }
-
+ 
         @media (max-width: 640px) {
           .wall-title { font-size: 17px; }
           .wall-header { max-width: 250px; top: 16px; left: 16px; }
@@ -677,7 +703,7 @@ export default function WallPage() {
           .wall-tagline { display: none; }
         }
       `}</style>
-
+ 
       <header className="wall-header">
         <div className="wall-eyebrow">LOYOLA COLLEGE · MUTESPEAK</div>
         <h1 className="wall-title">THE WALL</h1>
@@ -686,11 +712,11 @@ export default function WallPage() {
           {loading ? "Counting…" : `${displayCount} students on the wall`}
         </div>
       </header>
-
+ 
       <a className="wall-cta" href="/register">
         Join the wall →
       </a>
-
+ 
       <div
         className="wall-viewport"
         ref={viewportRef}
@@ -740,7 +766,7 @@ export default function WallPage() {
           </div>
         )}
       </div>
-
+ 
       {showHint && !loading && !error && <div className="wall-hint">Drag or swipe to explore the wall</div>}
     </div>
   );
