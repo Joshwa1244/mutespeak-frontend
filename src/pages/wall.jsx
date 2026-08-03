@@ -1,4 +1,12 @@
-import { useState, useRef, useEffect, useLayoutEffect, useMemo, useCallback } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useCallback,
+  memo,
+} from "react";
 
 /**
  * THE WALL — public page
@@ -21,6 +29,12 @@ import { useState, useRef, useEffect, useLayoutEffect, useMemo, useCallback } fr
  * - Card size, grid shape, and board padding scale down together
  *   via `isCompact`/`--card-w` on narrow screens so mobile users
  *   mostly pan vertically instead of hunting around a wide board.
+ * - Dragging is tuned for feel, not just correctness:
+ *   `WallCard` is memoized so panning the board doesn't re-render
+ *   every card, translate updates are batched to one per animation
+ *   frame, edges have a little elastic give while dragging, and a
+ *   flick keeps gliding with momentum/friction like a native scroll
+ *   view instead of stopping dead when you lift your finger.
  * ------------------------------------------------------------
  */
 
@@ -54,10 +68,30 @@ function cartoonAvatarUrl(seed) {
   return `https://api.dicebear.com/7.x/avataaars-neutral/svg?seed=${encodeURIComponent(seed)}`;
 }
 
-function WallCard({ student, index, style }) {
+function prefersReducedMotion() {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
+// Memoized so panning the board (which only changes .wall-board's own
+// transform) never re-renders the individual cards — with a few hundred
+// students that per-frame re-render was the main source of the "stuck"
+// feeling while dragging on mobile.
+const WallCard = memo(function WallCard({ student, index, left, top, rotate, delay }) {
   const [photoFailed, setPhotoFailed] = useState(false);
   const hasRealPhoto = Boolean(student.profilePictureUrl) && !photoFailed;
   const photoSrc = hasRealPhoto ? student.profilePictureUrl : cartoonAvatarUrl(student.id ?? student.name);
+
+  const style = {
+    position: "absolute",
+    left,
+    top,
+    transform: `rotate(${rotate}deg)`,
+    animationDelay: `${delay}ms`,
+  };
 
   return (
     <div className="wall-card" style={style}>
@@ -79,7 +113,7 @@ function WallCard({ student, index, style }) {
       <div className="wall-serial">NO. {String(index + 1).padStart(3, "0")}</div>
     </div>
   );
-}
+});
 
 export default function WallPage() {
   const [students, setStudents] = useState([]);
@@ -87,11 +121,24 @@ export default function WallPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showHint, setShowHint] = useState(true);
+  const [isSnapping, setIsSnapping] = useState(false);
 
   const viewportRef = useRef(null);
   const dragState = useRef({ dragging: false, startX: 0, startY: 0, startTx: 0, startTy: 0 });
   const hasCenteredOnce = useRef(false);
+
+  // `translate` (state) is what actually renders; `translateRef` mirrors it
+  // synchronously so drag/momentum code always reads the true current
+  // position instead of a possibly one-frame-stale closure value.
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
+  const translateRef = useRef({ x: 0, y: 0 });
+  const rafRef = useRef(null);
+  const pendingRef = useRef(null);
+  const momentumRef = useRef(null);
+  const snapTimeoutRef = useRef(null);
+  const velocityRef = useRef({ vx: 0, vy: 0 });
+  const lastMoveRef = useRef({ x: 0, y: 0, t: 0 });
+
   const [viewportSize, setViewportSize] = useState({ w: 0, h: 0 });
 
   useEffect(() => {
@@ -174,16 +221,71 @@ export default function WallPage() {
     });
   }, [students, columns, cellW, isCompact, boardPadX, boardPadTop]);
 
+  // `elastic` allows a little give past the edge while actively dragging
+  // (a soft "stretch" instead of an abrupt wall); everything else (momentum,
+  // keyboard nav, initial centering) uses the hard-clamped version.
   const clamp = useCallback(
-    (x, y) => {
-      const minX = Math.min(0, viewportSize.w - boardWidth);
-      const minY = Math.min(0, viewportSize.h - boardHeight);
-      return {
-        x: Math.max(minX - 80, Math.min(80, x)),
-        y: Math.max(minY - 80, Math.min(80, y)),
+    (x, y, elastic = false) => {
+      const minX = Math.min(0, viewportSize.w - boardWidth) - 80;
+      const maxX = 80;
+      const minY = Math.min(0, viewportSize.h - boardHeight) - 80;
+      const maxY = 80;
+      const bound = (v, lo, hi) => {
+        if (v < lo) return elastic ? lo - (lo - v) * 0.35 : lo;
+        if (v > hi) return elastic ? hi + (v - hi) * 0.35 : hi;
+        return v;
       };
+      return { x: bound(x, minX, maxX), y: bound(y, minY, maxY) };
     },
     [viewportSize, boardWidth, boardHeight]
+  );
+
+  // Writes to the ref immediately (so drag/momentum code always has the
+  // true current value) and to React state either immediately or batched
+  // to at most once per animation frame, so a flood of pointermove events
+  // doesn't force a full re-render per event.
+  const applyTranslate = useCallback((next, immediate = false) => {
+    translateRef.current = next;
+    if (immediate) {
+      setTranslate(next);
+      return;
+    }
+    pendingRef.current = next;
+    if (rafRef.current == null) {
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null;
+        setTranslate(pendingRef.current);
+      });
+    }
+  }, []);
+
+  const stopMomentum = useCallback(() => {
+    if (momentumRef.current != null) {
+      cancelAnimationFrame(momentumRef.current);
+      momentumRef.current = null;
+    }
+  }, []);
+
+  // Lets a flick keep gliding and decelerate, like a native scroll view,
+  // instead of stopping the instant the finger lifts.
+  const startMomentum = useCallback(
+    (vx, vy) => {
+      let vel = { x: vx * 16, y: vy * 16 };
+      const friction = 0.94;
+      const step = () => {
+        vel.x *= friction;
+        vel.y *= friction;
+        if (Math.hypot(vel.x, vel.y) < 0.4) {
+          momentumRef.current = null;
+          return;
+        }
+        const next = clamp(translateRef.current.x + vel.x, translateRef.current.y + vel.y);
+        applyTranslate(next, true);
+        momentumRef.current = requestAnimationFrame(step);
+      };
+      momentumRef.current = requestAnimationFrame(step);
+    },
+    [clamp, applyTranslate]
   );
 
   // Center the view the first time we know board + viewport size. After
@@ -195,22 +297,38 @@ export default function WallPage() {
     if (!viewportSize.w || !boardWidth) return;
     if (!hasCenteredOnce.current) {
       const centered = clamp((viewportSize.w - boardWidth) / 2, (viewportSize.h - boardHeight) / 3);
-      setTranslate(centered);
+      applyTranslate(centered, true);
       hasCenteredOnce.current = true;
     } else {
-      setTranslate((t) => clamp(t.x, t.y));
+      applyTranslate(clamp(translateRef.current.x, translateRef.current.y), true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewportSize.w, viewportSize.h, boardWidth, boardHeight]);
 
+  useEffect(() => {
+    return () => {
+      stopMomentum();
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      if (snapTimeoutRef.current != null) clearTimeout(snapTimeoutRef.current);
+    };
+  }, [stopMomentum]);
+
   const onPointerDown = (e) => {
+    stopMomentum();
+    if (snapTimeoutRef.current != null) {
+      clearTimeout(snapTimeoutRef.current);
+      snapTimeoutRef.current = null;
+      setIsSnapping(false);
+    }
     dragState.current = {
       dragging: true,
       startX: e.clientX,
       startY: e.clientY,
-      startTx: translate.x,
-      startTy: translate.y,
+      startTx: translateRef.current.x,
+      startTy: translateRef.current.y,
     };
+    lastMoveRef.current = { x: e.clientX, y: e.clientY, t: performance.now() };
+    velocityRef.current = { vx: 0, vy: 0 };
     setShowHint(false);
     e.currentTarget.setPointerCapture?.(e.pointerId);
   };
@@ -218,13 +336,45 @@ export default function WallPage() {
   const onPointerMove = (e) => {
     if (!dragState.current.dragging) return;
     e.preventDefault();
+
+    const now = performance.now();
+    const dt = Math.max(1, now - lastMoveRef.current.t);
+    const ivx = (e.clientX - lastMoveRef.current.x) / dt;
+    const ivy = (e.clientY - lastMoveRef.current.y) / dt;
+    // Light low-pass filter so one jumpy sample doesn't dominate the
+    // velocity estimate used for the release-flick.
+    velocityRef.current = {
+      vx: velocityRef.current.vx * 0.7 + ivx * 0.3,
+      vy: velocityRef.current.vy * 0.7 + ivy * 0.3,
+    };
+    lastMoveRef.current = { x: e.clientX, y: e.clientY, t: now };
+
     const dx = e.clientX - dragState.current.startX;
     const dy = e.clientY - dragState.current.startY;
-    setTranslate(clamp(dragState.current.startTx + dx, dragState.current.startTy + dy));
+    applyTranslate(clamp(dragState.current.startTx + dx, dragState.current.startTy + dy, true));
   };
 
   const endDrag = () => {
+    if (!dragState.current.dragging) return;
     dragState.current.dragging = false;
+
+    const settled = clamp(translateRef.current.x, translateRef.current.y, false);
+    const overshot = settled.x !== translateRef.current.x || settled.y !== translateRef.current.y;
+
+    if (overshot) {
+      setIsSnapping(true);
+      applyTranslate(settled, true);
+      snapTimeoutRef.current = window.setTimeout(() => {
+        setIsSnapping(false);
+        snapTimeoutRef.current = null;
+      }, 320);
+      return;
+    }
+
+    const { vx, vy } = velocityRef.current;
+    if (!prefersReducedMotion() && Math.hypot(vx, vy) > 0.05) {
+      startMomentum(vx, vy);
+    }
   };
 
   const onKeyDown = (e) => {
@@ -237,9 +387,10 @@ export default function WallPage() {
     };
     if (moves[e.key]) {
       e.preventDefault();
+      stopMomentum();
       setShowHint(false);
       const [dx, dy] = moves[e.key];
-      setTranslate((t) => clamp(t.x + dx, t.y + dy));
+      applyTranslate(clamp(translateRef.current.x + dx, translateRef.current.y + dy), true);
     }
   };
 
@@ -375,7 +526,19 @@ export default function WallPage() {
           z-index: 3;
         }
 
-        .wall-board { position: relative; overflow: visible; will-change: transform; }
+        .wall-board {
+          position: relative;
+          overflow: visible;
+          will-change: transform;
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+        }
+        /* Only applied briefly when a drag overshoots the edge and springs
+           back — never during normal dragging or the momentum glide, both
+           of which need to track the finger/physics with zero added lag. */
+        .wall-board-snap {
+          transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+        }
 
         .wall-card {
           width: var(--card-w, 150px);
@@ -484,7 +647,7 @@ export default function WallPage() {
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .wall-card, .wall-cta, .wall-hint { transition: none !important; animation: none !important; }
+          .wall-card, .wall-cta, .wall-hint, .wall-board-snap { transition: none !important; animation: none !important; }
         }
 
         @media (max-width: 640px) {
@@ -532,11 +695,11 @@ export default function WallPage() {
         {error && <div className="wall-error">{error}</div>}
         {!error && (
           <div
-            className="wall-board"
+            className={`wall-board${isSnapping ? " wall-board-snap" : ""}`}
             style={{
               width: boardWidth,
               height: boardHeight,
-              transform: `translate(${translate.x}px, ${translate.y}px)`,
+              transform: `translate3d(${translate.x}px, ${translate.y}px, 0)`,
             }}
           >
             {students.map((s, i) => (
@@ -544,13 +707,10 @@ export default function WallPage() {
                 key={s.id}
                 student={s}
                 index={i}
-                style={{
-                  position: "absolute",
-                  left: cardPositions[i].left,
-                  top: cardPositions[i].top,
-                  transform: `rotate(${cardPositions[i].rotate}deg)`,
-                  animationDelay: `${Math.min(i * 15, 300)}ms`,
-                }}
+                left={cardPositions[i].left}
+                top={cardPositions[i].top}
+                rotate={cardPositions[i].rotate}
+                delay={Math.min(i * 15, 300)}
               />
             ))}
             {loading &&
