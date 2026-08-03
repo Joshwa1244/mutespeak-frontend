@@ -675,7 +675,7 @@ export default function WallPage() {
         </div>
       </header>
 
-      <a className="wall-cta" href="/signup">
+      <a className="wall-cta" href="/register">
         Join the wall →
       </a>
 
