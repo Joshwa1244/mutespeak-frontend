@@ -1,24 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { DodoPayments } from "dodopayments-checkout";
+import { paymentService } from "./paymentService";
 import "./Support.css";
 
 // -------------------------------------------------------------
 // CONFIGURATION
 // -------------------------------------------------------------
-// Replace this with your actual Razorpay Key ID from the dashboard
-// e.g., "rzp_live_XXXXXXXXXXXXX" or "rzp_test_XXXXXXXXXXXXX"
-const RAZORPAY_KEY_ID = "rzp_test_TJHviw1r08mCBt";
-
-// Illustrative price used only to drive the calculator below.
 const PRICE_PER_COFFEE = 49;
 const MAX_COFFEES = 20;
 const COFFEE_PRESETS = [1, 3, 5, 10];
-
-const STATS = [
-  { id: "coffees", value: 0, suffix: "", label: "Coffees" },
-  { id: "features", value: 14, suffix: "+", label: "Features Built" },
-  { id: "hours", value: 300, suffix: "+", label: "Hours Building" },
-];
 
 const TIMELINE = [
   {
@@ -49,21 +40,34 @@ const TIMELINE = [
 ];
 
 export default function Support() {
-  // 1. Scroll to top on mount for a premium entrance
-  // 2. Load the Razorpay SDK dynamically
+  const [supporterCount, setSupporterCount] = useState(0);
+
+  // Fetch supporter count for stats ledger
+  const fetchSupporters = async () => {
+    try {
+      const supporters = await paymentService.getSupporters();
+      setSupporterCount(supporters ? supporters.length : 0);
+    } catch (err) {
+      console.error("Failed to load supporters count:", err);
+    }
+  };
+
   useEffect(() => {
     window.scrollTo(0, 0);
 
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
+   // Initialize Dodo Payments Checkout Overlay SDK
+    DodoPayments.Initialize({
+      mode: "live",
+      displayType: "overlay",
+      onEvent: (event) => {
+        if (event.event_type === "checkout.closed") {
+          // Buffer to let the webhook finish updating DB status to SUCCESSFUL
+          setTimeout(fetchSupporters, 2500);
+        }
       }
-    };
+    });
+
+    fetchSupporters();
   }, []);
 
   const [statsRef, statsIn] = useReveal(0.3);
@@ -71,6 +75,12 @@ export default function Support() {
   const [roadmapRef, roadmapIn] = useReveal(0.12);
   const [founderRef, founderIn] = useReveal(0.3);
   const [thanksRef, thanksIn] = useReveal(0.2);
+
+  const stats = [
+    { id: "coffees", value: supporterCount, suffix: "", label: "Coffees" },
+    { id: "features", value: 14, suffix: "+", label: "Features Built" },
+    { id: "hours", value: 300, suffix: "+", label: "Hours Building" },
+  ];
 
   return (
     <div className="support-page">
@@ -103,11 +113,11 @@ export default function Support() {
             </p>
 
             <div className="support-action-area">
-              <SupportButton label="Support via Razorpay" amount={PRICE_PER_COFFEE} />
+              <SupportButton label="Support via Dodo Payments" amount={PRICE_PER_COFFEE} />
 
               <div className="support-secure-badge">
                 <LockIcon />
-                <span>Secure payments via Razorpay</span>
+                <span>Secure payments via Dodo Payments</span>
               </div>
             </div>
 
@@ -137,7 +147,7 @@ export default function Support() {
         ref={statsRef}
       >
         <div className="support-container support-stats-row">
-          {STATS.map((stat, i) => (
+          {stats.map((stat, i) => (
             <StatItem key={stat.id} stat={stat} active={statsIn} index={i} />
           ))}
         </div>
@@ -251,6 +261,7 @@ function CoffeeCalculator() {
   const [coffees, setCoffees] = useState(3);
   const [isCustom, setIsCustom] = useState(false);
   const [customAmount, setCustomAmount] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [bump, setBump] = useState(false);
 
   // Dynamic calculations based on mode
@@ -354,6 +365,18 @@ function CoffeeCalculator() {
           </button>
         </div>
 
+        {/* Display Name Input */}
+        <div className="calc-custom-group" style={{ marginBottom: "24px" }}>
+          <input
+            type="text"
+            className="calc-custom-input"
+            style={{ fontSize: "16px", fontWeight: "600" }}
+            placeholder="Display Name (e.g. Anonymous / Alex)"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+          />
+        </div>
+
         <ul className="calc-equivalents">
           <li>
             <strong>{serverHours} hrs</strong>
@@ -380,6 +403,7 @@ function CoffeeCalculator() {
           className="calc-cta" 
           disabled={activeAmount <= 0}
           amount={activeAmount}
+          displayName={displayName}
         />
       </div>
     </div>
@@ -387,66 +411,40 @@ function CoffeeCalculator() {
 }
 
 // ---------------------------------------------------------------
-// SHARED SUPPORT BUTTON (Standard Checkout Integration)
+// SHARED SUPPORT BUTTON (Dodo Payments Overlay Integration)
 // ---------------------------------------------------------------
-function SupportButton({ label, className = "", disabled = false, amount = 0 }) {
+function SupportButton({ label, className = "", disabled = false, amount = 0, displayName = "" }) {
   const magnetic = useMagnetic();
+  const [loading, setLoading] = useState(false);
 
-  const handlePayment = () => {
-    if (disabled || amount <= 0) return;
+  const handlePayment = async () => {
+    if (disabled || amount <= 0 || loading) return;
+    setLoading(true);
 
-    if (!window.Razorpay) {
-      alert("Razorpay SDK is still loading or failed to load. Please ensure you have internet access.");
-      return;
-    }
-
-    // Razorpay standard checkout configuration
-    const options = {
-      key: RAZORPAY_KEY_ID, 
-      amount: amount * 100, // Razorpay takes amounts in paise (multiply by 100)
-      currency: "INR",
-      name: "mutespeak;",
-      description: "Support for Server and Coffee",
-      theme: {
-        color: "#003f22", // Your brand dark forest green
-      },
-      handler: function (response) {
-        // This fires when the payment is successfully completed
-        alert(`Thank you for your support! Payment ID: ${response.razorpay_payment_id}`);
-        // Future proofing: If you ever add a backend for tracking donations, send the ID there.
-      },
-      prefill: {
-        name: "Campus Supporter", // Optional defaults
+    try {
+      const data = await paymentService.createCheckoutSession(amount, displayName);
+      if (data && data.checkoutUrl) {
+        DodoPayments.Checkout.open({ checkoutUrl: data.checkoutUrl });
+      } else {
+        alert("Unable to generate checkout session. Please try again.");
       }
-    };
-
-    const rzp = new window.Razorpay(options);
-    rzp.open();
+    } catch (err) {
+      console.error("Dodo payment initiation error:", err);
+      alert("Payment initiation failed. Please check your network connection.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (RAZORPAY_KEY_ID) {
-    return (
-      <button
-        type="button"
-        onClick={handlePayment}
-        className={`support-btn primary active ${className}`}
-        disabled={disabled}
-        {...magnetic}
-      >
-        {label}
-      </button>
-    );
-  }
-
-  // Fallback state for when the Key ID is empty (verification pending)
   return (
     <button
       type="button"
-      className={`support-btn primary disabled ${className}`}
-      disabled
+      onClick={handlePayment}
+      className={`support-btn primary active ${className}`}
+      disabled={disabled || loading}
+      {...magnetic}
     >
-      <span className="support-ribbon">Coming Soon</span>
-      {label}
+      {loading ? "Preparing Checkout..." : label}
     </button>
   );
 }

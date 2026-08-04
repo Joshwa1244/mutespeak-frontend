@@ -1098,15 +1098,3 @@
 .calc-custom-input[type=number] {
   -moz-appearance: textfield;
 }
-/* ===============================================================
-   RAZORPAY SCRIPT WRAPPER
-================================================================ */
-.razorpay-wrapper {
-  display: flex;
-  justify-content: flex-start;
-  width: 100%;
-}
-
-.razorpay-wrapper.calc-cta {
-  margin-top: 10px;
-}
