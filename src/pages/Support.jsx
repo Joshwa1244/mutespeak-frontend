@@ -91,7 +91,9 @@ export default function Support() {
           <div className="support-hero-content">
             <span className="eyebrow eyebrow-light">Support mutespeak</span>
 
-            <h1>Buy me a coffee</h1>
+            <h1>
+              Buy me a <span className="hero-accent">coffee</span>
+            </h1>
 
             <p>
               mutespeak is built by a student, for students. It&apos;s 100%
