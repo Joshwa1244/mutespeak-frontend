@@ -91,9 +91,7 @@ export default function Support() {
           <div className="support-hero-content">
             <span className="eyebrow eyebrow-light">Support mutespeak</span>
 
-            <h1>
-              Buy me a <span className="hero-accent">coffee</span>
-            </h1>
+            <h1>Buy me a coffee</h1>
 
             <p>
               mutespeak is built by a student, for students. It&apos;s 100%
@@ -106,9 +104,9 @@ export default function Support() {
                 href={BMC_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="support-btn primary active inline-flex items-center gap-2"
+                className="support-btn active"
               >
-                ☕ Support via Buy Me a Coffee
+                Support via Buy Me a Coffee
               </a>
 
               <div className="support-secure-badge">
@@ -149,7 +147,7 @@ export default function Support() {
       </section>
 
       {/* =========================================================
-          CREATIVE ANIMATED SUPPORTERS WALL
+          PREMIUM SUPPORTERS WALL
       ========================================================== */}
       <section
         className={`support-wall-section${wallIn ? " is-in" : ""}`}
@@ -163,11 +161,11 @@ export default function Support() {
           </div>
 
           {loadingSupporters ? (
-            <div className="wall-loading">Loading wall of legends...</div>
+            <div className="wall-loading">Loading ledger...</div>
           ) : supporters.length === 0 ? (
             <div className="wall-empty-card">
               <span className="empty-coffee-icon">☕</span>
-              <p>No coffees on the wall yet. Be the first legendary supporter!</p>
+              <p>No coffees on the wall yet. Be the first legendary supporter.</p>
               <a
                 href={BMC_LINK}
                 target="_blank"
@@ -186,24 +184,27 @@ export default function Support() {
                   style={{ animationDelay: `${index * 80}ms` }}
                 >
                   <div className="supporter-card-header">
-                    <div className="supporter-avatar-badge">
-                      {(s.displayName || "A").charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <h4 className="supporter-name">{s.displayName || "Anonymous"}</h4>
-                      <span className="supporter-date">
-                        {new Date(s.createdAt || Date.now()).toLocaleDateString(undefined, {
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </span>
+                    <div className="supporter-identity">
+                      <div className="supporter-avatar-badge">
+                        {(s.displayName || "A").charAt(0).toUpperCase()}
+                      </div>
+                      <div className="supporter-meta">
+                        <h4 className="supporter-name">{s.displayName || "Anonymous"}</h4>
+                        <span className="supporter-date">
+                          {new Date(s.createdAt || Date.now()).toLocaleDateString(undefined, {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
+                        </span>
+                      </div>
                     </div>
                     <div className="supporter-amount-pill">
                       ₹{s.amount}
                     </div>
                   </div>
                   <p className="supporter-message">
-                    {s.message || "Brought a coffee to keep mutespeak alive! 🚀"}
+                    "{s.message || "Brought a coffee to keep mutespeak alive."}"
                   </p>
                 </div>
               ))}

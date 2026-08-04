@@ -351,7 +351,7 @@
 }
 
 /* ===============================================================
-   STATISTICS — hairline ledger row (matches About's divided lists)
+   STATISTICS — hairline ledger row
 ================================================================ */
 
 .support-stats {
@@ -411,207 +411,142 @@
   letter-spacing: 0.08em;
 }
 
-/* ===============================================================
-   COFFEE CALCULATOR (signature section)
-================================================================ */
-
-.support-calculator {
+/* =========================================================
+   PREMIUM EDITORIAL SUPPORTERS WALL
+========================================================= */
+.support-wall-section {
   padding: 120px 0;
   background: var(--sup-paper);
 }
 
-.calc-grid {
-  display: grid;
-  grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.3fr);
-  gap: 80px;
-  align-items: start;
-}
-
-.calc-heading {
-  position: sticky;
-  top: 100px;
-}
-
-.calc-heading h2 {
-  color: var(--sup-green);
-  font-size: clamp(30px, 4vw, 44px);
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 1.08;
-  margin: 0 0 18px;
-}
-
-.calc-heading p {
+.wall-loading,
+.wall-empty-card {
+  text-align: center;
+  padding: 60px 40px;
+  background: var(--sup-paper-alt);
+  border: 1px solid var(--sup-line-strong);
   color: var(--sup-muted);
-  font-size: 15.5px;
-  line-height: 1.75;
-  max-width: 360px;
-  margin: 0;
+  font-size: 16px;
 }
 
-.calc-panel {
+.wall-empty-card .empty-coffee-icon {
+  font-size: 32px;
+  display: block;
+  margin-bottom: 16px;
+  color: var(--sup-gold-soft);
+}
+
+.wall-empty-btn {
+  display: inline-block;
+  margin-top: 24px;
+  background: var(--sup-green);
+  color: #fff;
+  font-weight: 700;
+  padding: 12px 28px;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 13px;
+  transition: background 0.3s ease;
+}
+
+.wall-empty-btn:hover {
+  background: var(--sup-ink);
+}
+
+.supporters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.supporter-card {
   background: #ffffff;
   border: 1px solid var(--sup-line-strong);
-  padding: 48px;
-  box-shadow: 10px 10px 0 var(--sup-gold);
-  opacity: 0;
-  transform: translateY(28px);
-  transition: opacity 0.7s var(--sup-ease) 0.1s, transform 0.7s var(--sup-ease) 0.1s;
-}
-
-.is-in .calc-panel {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.calc-readout {
-  display: flex;
-  align-items: flex-start;
-  gap: 4px;
-  line-height: 1;
-}
-
-.calc-currency {
-  color: var(--sup-green);
-  font-size: 28px;
-  font-weight: 800;
-  margin-top: 8px;
-}
-
-.calc-amount {
-  color: var(--sup-green);
-  font-size: clamp(56px, 7vw, 84px);
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  font-variant-numeric: tabular-nums;
-  display: inline-block;
-}
-
-.calc-amount.is-bumping {
-  animation: numberBump 0.26s var(--sup-ease);
-}
-
-.calc-caption {
-  margin: 8px 0 32px;
-  color: var(--sup-muted-2);
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.calc-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 6px;
-  margin: 0 0 20px;
-  background: linear-gradient(
-    to right,
-    var(--sup-green) 0%,
-    var(--sup-green) var(--fill, 0%),
-    var(--sup-line-strong) var(--fill, 0%),
-    var(--sup-line-strong) 100%
-  );
-  outline: none;
-  cursor: pointer;
-}
-
-.calc-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--sup-gold);
-  border: 3px solid var(--sup-green);
-  transition: transform 0.2s var(--sup-ease);
-}
-
-.calc-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
-}
-
-.calc-slider::-moz-range-track {
-  height: 6px;
-  background: var(--sup-line-strong);
-}
-
-.calc-slider::-moz-range-progress {
-  height: 6px;
-  background: var(--sup-green);
-}
-
-.calc-slider::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--sup-gold);
-  border: 3px solid var(--sup-green);
-  cursor: pointer;
-}
-
-.calc-presets {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 36px;
-}
-
-.calc-chip {
-  min-width: 44px;
-  padding: 8px 14px;
-  background: transparent;
-  border: 1px solid var(--sup-line-strong);
-  color: var(--sup-ink-soft);
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
-}
-
-.calc-chip:hover {
-  border-color: var(--sup-green);
-}
-
-.calc-chip.active {
-  background: var(--sup-green);
-  border-color: var(--sup-green);
-  color: #ffffff;
-}
-
-.calc-equivalents {
-  list-style: none;
-  margin: 0 0 28px;
-  padding: 24px 0 0;
-  border-top: 1px solid var(--sup-line);
+  padding: 32px;
+  position: relative;
+  transition: box-shadow 0.4s var(--sup-ease), transform 0.4s var(--sup-ease);
+  animation: cardFadeUp 0.8s var(--sup-ease) backwards;
   display: flex;
   flex-direction: column;
-  gap: 14px;
 }
 
-.calc-equivalents li {
+.supporter-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 8px 8px 0 var(--sup-gold);
+  border-color: var(--sup-green);
+}
+
+.supporter-card-header {
   display: flex;
-  align-items: baseline;
-  gap: 10px;
-  font-size: 14.5px;
-  color: var(--sup-muted);
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--sup-line);
+  padding-bottom: 20px;
 }
 
-.calc-equivalents strong {
+.supporter-identity {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.supporter-avatar-badge {
+  width: 48px;
+  height: 48px;
+  background: var(--sup-paper-alt);
+  border: 1px solid var(--sup-line-strong);
   color: var(--sup-green);
   font-weight: 800;
-  min-width: 92px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-family: var(--sup-serif);
 }
 
-.calc-note {
-  margin: 0 0 28px;
-  padding-top: 20px;
-  border-top: 1px solid var(--sup-line);
+.supporter-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.supporter-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--sup-ink);
+  margin: 0;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.supporter-date {
+  font-size: 12px;
+  font-weight: 600;
   color: var(--sup-muted-2);
-  font-size: 13.5px;
-  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.calc-cta {
-  max-width: none;
-  width: 100%;
+.supporter-amount-pill {
+  color: var(--sup-green);
+  font-size: 18px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: center;
+}
+
+.supporter-message {
+  font-size: 15px;
+  color: var(--sup-ink-soft);
+  margin: 0;
+  line-height: 1.6;
+  font-family: var(--sup-serif);
+  font-style: italic;
+  flex-grow: 1;
 }
 
 /* ===============================================================
@@ -620,7 +555,8 @@
 
 .support-roadmap {
   padding: 120px 0;
-  background: #ffffff;
+  background: var(--sup-paper-alt);
+  border-top: 1px solid var(--sup-line);
 }
 
 .support-section-header {
@@ -745,9 +681,8 @@
 
 .support-founder-note {
   padding: 88px 0;
-  background: var(--sup-paper-alt);
+  background: var(--sup-paper);
   border-top: 1px solid var(--sup-line);
-  border-bottom: 1px solid var(--sup-line);
 }
 
 .founder-note-inner {
@@ -914,15 +849,14 @@
   }
 }
 
-@keyframes numberBump {
-  0% {
-    transform: scale(1);
+@keyframes cardFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
   }
-  40% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -954,15 +888,6 @@
   .cup-body {
     transform: scale(0.85);
   }
-
-  .calc-grid {
-    grid-template-columns: 1fr;
-    gap: 40px;
-  }
-
-  .calc-heading {
-    position: static;
-  }
 }
 
 @media (max-width: 768px) {
@@ -978,16 +903,15 @@
   .stat-row:last-child {
     border-bottom: none;
   }
+
+  .supporters-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {
   .support-hero {
     padding: 100px 0 90px;
-  }
-
-  .calc-panel {
-    padding: 32px 24px;
-    box-shadow: 6px 6px 0 var(--sup-gold);
   }
 
   .support-btn {
@@ -1037,7 +961,7 @@
   }
 
   .stat-row,
-  .calc-panel,
+  .supporter-card,
   .timeline-item,
   .founder-note-inner,
   .support-thank-you-inner,
@@ -1045,183 +969,5 @@
   .support-art-container {
     opacity: 1 !important;
     transform: none !important;
-  }
-}
-
-/* ===============================================================
-   COFFEE CALCULATOR (CUSTOM INPUT ADDITIONS)
-================================================================ */
-
-.calc-custom-group {
-  display: flex;
-  align-items: center;
-  margin: 0 0 20px;
-  border-bottom: 2px solid var(--sup-line-strong);
-  transition: border-color 0.2s var(--sup-ease);
-}
-
-.calc-custom-group:focus-within {
-  border-color: var(--sup-green);
-}
-
-.calc-custom-prefix {
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--sup-green);
-  margin-right: 12px;
-  padding-bottom: 8px;
-}
-
-.calc-custom-input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--sup-green);
-  outline: none;
-  padding-bottom: 8px;
-  font-family: inherit;
-}
-
-.calc-custom-input::placeholder {
-  color: var(--sup-line-strong);
-  font-weight: 600;
-}
-
-/* Hide native number spin buttons for a cleaner UI */
-.calc-custom-input::-webkit-outer-spin-button,
-.calc-custom-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-.calc-custom-input[type=number] {
-  -moz-appearance: textfield;
-}
-
-/* =========================================================
-   ANIMATED SUPPORTERS WALL STYLES
-========================================================= */
-.support-wall-section {
-  padding: 60px 0;
-  position: relative;
-}
-
-.wall-loading,
-.wall-empty-card {
-  text-align: center;
-  padding: 40px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px dashed rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  color: #9ca3af;
-  margin-top: 20px;
-}
-
-.wall-empty-card .empty-coffee-icon {
-  font-size: 2.5rem;
-  display: block;
-  margin-bottom: 12px;
-}
-
-.wall-empty-btn {
-  display: inline-block;
-  margin-top: 16px;
-  background: #ffdd00;
-  color: #000;
-  font-weight: 600;
-  padding: 8px 20px;
-  border-radius: 8px;
-  transition: transform 0.2s ease, background 0.2s ease;
-}
-
-.wall-empty-btn:hover {
-  background: #ffcc00;
-  transform: translateY(-2px);
-}
-
-.supporters-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-  margin-top: 30px;
-}
-
-.supporter-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
-  animation: cardFloatIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
-  transition: transform 0.3s ease, border-color 0.3s ease;
-}
-
-.supporter-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(255, 221, 0, 0.3);
-}
-
-.supporter-card-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.supporter-avatar-badge {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #ffdd00 0%, #ff9900 100%);
-  color: #000;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-  box-shadow: 0 4px 12px rgba(255, 221, 0, 0.2);
-}
-
-.supporter-name {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #fff;
-  margin: 0;
-}
-
-.supporter-date {
-  font-size: 0.75rem;
-  color: #9ca3af;
-}
-
-.supporter-amount-pill {
-  margin-left: auto;
-  background: rgba(255, 221, 0, 0.1);
-  color: #ffdd00;
-  border: 1px solid rgba(255, 221, 0, 0.2);
-  font-size: 0.85rem;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 20px;
-}
-
-.supporter-message {
-  font-size: 0.9rem;
-  color: #d1d5db;
-  margin: 0;
-  line-height: 1.4;
-  word-break: break-word;
-}
-
-@keyframes cardFloatIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
