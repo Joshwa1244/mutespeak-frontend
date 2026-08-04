@@ -1,15 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { DodoPayments } from "dodopayments-checkout";
-import { paymentService } from "../services/paymentService";
 import "./Support.css";
 
 // -------------------------------------------------------------
 // CONFIGURATION
 // -------------------------------------------------------------
-const PRICE_PER_COFFEE = 49;
-const MAX_COFFEES = 20;
-const COFFEE_PRESETS = [1, 3, 5, 10];
+const BMC_LINK = "https://buymeacoffee.com/YOUR_BMC_USERNAME"; // Replace with your actual BMC link
+const API_BASE_URL = "https://site--mutespeak-backend--22t95wnlrvvt.code.run/api/payments";
 
 const TIMELINE = [
   {
@@ -32,52 +29,44 @@ const TIMELINE = [
     title: "Campus Communities",
     description: "Niche groups for clubs, departments, and shared interests.",
   },
-  {
-    status: "upcoming",
-    title: "AI Features",
-    description: "Smart moderation, personalized feeds, and context-aware tools.",
-  },
 ];
 
 export default function Support() {
-  const [supporterCount, setSupporterCount] = useState(0);
+  const [supporters, setSupporters] = useState([]);
+  const [loadingSupporters, setLoadingSupporters] = useState(true);
 
-  // Fetch supporter count for stats ledger
+  // Fetch supporters from backend database
   const fetchSupporters = async () => {
     try {
-      const supporters = await paymentService.getSupporters();
-      setSupporterCount(supporters ? supporters.length : 0);
+      const res = await fetch(`${API_BASE_URL}/supporters`);
+      if (res.ok) {
+        const data = await res.json();
+        setSupporters(data);
+      }
     } catch (err) {
-      console.error("Failed to load supporters count:", err);
+      console.error("Failed to load supporters:", err);
+    } finally {
+      setLoadingSupporters(false);
     }
   };
 
   useEffect(() => {
     window.scrollTo(0, 0);
-
-   // Initialize Dodo Payments Checkout Overlay SDK
-    DodoPayments.Initialize({
-      mode: "live",
-      displayType: "overlay",
-      onEvent: (event) => {
-        if (event.event_type === "checkout.closed") {
-          // Buffer to let the webhook finish updating DB status to SUCCESSFUL
-          setTimeout(fetchSupporters, 2500);
-        }
-      }
-    });
-
     fetchSupporters();
+
+    // Auto-poll every 30 seconds to catch webhook updates in real-time
+    const interval = setInterval(fetchSupporters, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const [statsRef, statsIn] = useReveal(0.3);
-  const [calcRef, calcIn] = useReveal(0.15);
+  const [wallRef, wallIn] = useReveal(0.15);
   const [roadmapRef, roadmapIn] = useReveal(0.12);
   const [founderRef, founderIn] = useReveal(0.3);
   const [thanksRef, thanksIn] = useReveal(0.2);
 
   const stats = [
-    { id: "coffees", value: supporterCount, suffix: "", label: "Coffees" },
+    { id: "coffees", value: supporters.length, suffix: "", label: "Coffees Donated" },
     { id: "features", value: 14, suffix: "+", label: "Features Built" },
     { id: "hours", value: 300, suffix: "+", label: "Hours Building" },
   ];
@@ -90,7 +79,6 @@ export default function Support() {
       <section className="support-hero">
         <div className="support-hero-noise" aria-hidden="true"></div>
 
-        {/* Floating Background Beans */}
         <div className="support-bg-beans" aria-hidden="true">
           <div className="bg-bean bg-bean-1"></div>
           <div className="bg-bean bg-bean-2"></div>
@@ -106,27 +94,32 @@ export default function Support() {
             <h1>Buy me a coffee</h1>
 
             <p>
-              mutespeak; is built by a student, for students. It&apos;s 100%
+              mutespeak is built by a student, for students. It&apos;s 100%
               free, ad-free, and privacy-first. If you love the platform,
-              your support fuels the late nights, server costs, and the
-              thousands of lines of code that make it happen.
+              your support fuels the server costs, late nights, and clean code.
             </p>
 
             <div className="support-action-area">
-              <SupportButton label="Support via Dodo Payments" amount={PRICE_PER_COFFEE} />
+              <a
+                href={BMC_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="support-btn primary active inline-flex items-center gap-2"
+              >
+                ☕ Support via Buy Me a Coffee
+              </a>
 
               <div className="support-secure-badge">
                 <LockIcon />
-                <span>Secure payments via Dodo Payments</span>
+                <span>Instant & secure processing via BMC</span>
               </div>
             </div>
 
             <Link to="/" className="support-back-link">
-              ← Back to mutespeak;
+              ← Back to mutespeak
             </Link>
           </div>
 
-          {/* Animated Coffee Cup Art */}
           <div className="support-art-container" aria-hidden="true">
             <div className="steam steam-1"></div>
             <div className="steam steam-2"></div>
@@ -154,13 +147,67 @@ export default function Support() {
       </section>
 
       {/* =========================================================
-          COFFEE CALCULATOR (signature interactive section)
+          CREATIVE ANIMATED SUPPORTERS WALL
       ========================================================== */}
       <section
-        className={`support-calculator${calcIn ? " is-in" : ""}`}
-        ref={calcRef}
+        className={`support-wall-section${wallIn ? " is-in" : ""}`}
+        ref={wallRef}
       >
-        <CoffeeCalculator />
+        <div className="support-container">
+          <div className="support-section-header">
+            <span className="eyebrow">Wall of Fame</span>
+            <h2>Recent Supporters</h2>
+            <p>The legends powering this independent ecosystem.</p>
+          </div>
+
+          {loadingSupporters ? (
+            <div className="wall-loading">Loading wall of legends...</div>
+          ) : supporters.length === 0 ? (
+            <div className="wall-empty-card">
+              <span className="empty-coffee-icon">☕</span>
+              <p>No coffees on the wall yet. Be the first legendary supporter!</p>
+              <a
+                href={BMC_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="wall-empty-btn"
+              >
+                Drop a Coffee
+              </a>
+            </div>
+          ) : (
+            <div className="supporters-grid">
+              {supporters.map((s, index) => (
+                <div 
+                  key={s.id || index} 
+                  className="supporter-card"
+                  style={{ animationDelay: `${index * 80}ms` }}
+                >
+                  <div className="supporter-card-header">
+                    <div className="supporter-avatar-badge">
+                      {(s.displayName || "A").charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h4 className="supporter-name">{s.displayName || "Anonymous"}</h4>
+                      <span className="supporter-date">
+                        {new Date(s.createdAt || Date.now()).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </span>
+                    </div>
+                    <div className="supporter-amount-pill">
+                      ₹{s.amount}
+                    </div>
+                  </div>
+                  <p className="supporter-message">
+                    {s.message || "Brought a coffee to keep mutespeak alive! 🚀"}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </section>
 
       {/* =========================================================
@@ -213,7 +260,7 @@ export default function Support() {
           <div className="founder-note-text">
             <span className="founder-note-label">A note from the builder</span>
             <p>
-              Joshwa Antony here — mutespeak; is a one-person build squeezed
+              Joshwa Antony here — mutespeak is a one-person build squeezed
               between classes and deadlines. Nothing here runs on ad revenue
               or investor money, just whatever time and coffee I can put
               into it.
@@ -223,7 +270,7 @@ export default function Support() {
       </section>
 
       {/* =========================================================
-          THANK YOU NOTE & FOOTER QUOTE
+          THANK YOU NOTE
       ========================================================== */}
       <section
         className={`support-thank-you${thanksIn ? " is-in" : ""}`}
@@ -232,220 +279,21 @@ export default function Support() {
         <div className="support-container support-thank-you-inner">
           <h2>Thank you for believing in indie development.</h2>
           <p>
-            Every line of code in mutespeak; is written with the belief that
+            Every line of code in mutespeak is written with the belief that
             college communities deserve a better, more private digital
             space. It&apos;s a solo journey, but it&apos;s powered by the
-            people who use it and support it. Whether you buy a coffee or
-            simply drop a post on the feed, you are what makes this platform
-            alive.
+            people who use it and support it.
           </p>
 
           <div className="support-footer-quote">
-            <span className="quote-mark" aria-hidden="true">
-              “
-            </span>
+            <span className="quote-mark" aria-hidden="true">“</span>
             <blockquote>
-              Every coffee becomes another late night building mutespeak;
+              Every coffee becomes another late night building mutespeak
             </blockquote>
           </div>
         </div>
       </section>
     </div>
-  );
-}
-
-// ---------------------------------------------------------------
-// COFFEE CALCULATOR (With Custom Input Support)
-// ---------------------------------------------------------------
-function CoffeeCalculator() {
-  const [coffees, setCoffees] = useState(3);
-  const [isCustom, setIsCustom] = useState(false);
-  const [customAmount, setCustomAmount] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [bump, setBump] = useState(false);
-
-  // Dynamic calculations based on mode
-  const activeAmount = isCustom ? (Number(customAmount) || 0) : coffees * PRICE_PER_COFFEE;
-  const activeCoffees = activeAmount / PRICE_PER_COFFEE;
-
-  useEffect(() => {
-    setBump(true);
-    const t = setTimeout(() => setBump(false), 260);
-    return () => clearTimeout(t);
-  }, [activeAmount]);
-
-  const serverHours = (activeCoffees * 2.5).toFixed(1);
-  const codeLines = Math.round(activeCoffees * 120);
-  const lateNights = Math.max(1, Math.round(activeCoffees / 3));
-  const fillPercent = ((coffees - 1) / (MAX_COFFEES - 1)) * 100;
-
-  // Handlers
-  const handlePreset = (n) => {
-    setIsCustom(false);
-    setCoffees(n);
-  };
-
-  const handleCustomClick = () => {
-    if (!isCustom) {
-      setIsCustom(true);
-      setCustomAmount(activeAmount > 0 ? activeAmount.toString() : "");
-    }
-  };
-
-  return (
-    <div className="support-container calc-grid">
-      <div className="calc-heading">
-        <span className="eyebrow">Where it actually goes</span>
-        <h2>Every contribution builds something.</h2>
-        <p>
-          Adjust the amount and watch your support translate into server time,
-          shipped code, and the late nights that keep mutespeak; running.
-        </p>
-      </div>
-
-      <div className="calc-panel">
-        <div className="calc-readout">
-          <span className="calc-currency">₹</span>
-          <span
-            className={`calc-amount${bump ? " is-bumping" : ""}`}
-            aria-live="polite"
-          >
-            {activeAmount}
-          </span>
-        </div>
-        <p className="calc-caption">
-          {isCustom
-            ? `≈ ${Math.max(0, activeCoffees).toFixed(1)} coffees`
-            : `${coffees} coffee${coffees > 1 ? "s" : ""} · ≈ ₹${PRICE_PER_COFFEE} each`}
-        </p>
-
-        {isCustom ? (
-          <div className="calc-custom-group">
-            <span className="calc-custom-prefix">₹</span>
-            <input
-              type="number"
-              min="1"
-              className="calc-custom-input"
-              placeholder="Enter custom amount"
-              value={customAmount}
-              onChange={(e) => setCustomAmount(e.target.value)}
-              autoFocus
-            />
-          </div>
-        ) : (
-          <input
-            type="range"
-            min="1"
-            max={MAX_COFFEES}
-            value={coffees}
-            onChange={(e) => setCoffees(Number(e.target.value))}
-            className="calc-slider"
-            style={{ "--fill": `${fillPercent}%` }}
-            aria-label="Number of coffees"
-          />
-        )}
-
-        <div className="calc-presets">
-          {COFFEE_PRESETS.map((n) => (
-            <button
-              key={n}
-              type="button"
-              className={`calc-chip${!isCustom && coffees === n ? " active" : ""}`}
-              onClick={() => handlePreset(n)}
-            >
-              {n}
-            </button>
-          ))}
-          <button
-            type="button"
-            className={`calc-chip${isCustom ? " active" : ""}`}
-            onClick={handleCustomClick}
-          >
-            Custom
-          </button>
-        </div>
-
-        {/* Display Name Input */}
-        <div className="calc-custom-group" style={{ marginBottom: "24px" }}>
-          <input
-            type="text"
-            className="calc-custom-input"
-            style={{ fontSize: "16px", fontWeight: "600" }}
-            placeholder="Display Name (e.g. Anonymous / Alex)"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-          />
-        </div>
-
-        <ul className="calc-equivalents">
-          <li>
-            <strong>{serverHours} hrs</strong>
-            <span>of server uptime kept alive</span>
-          </li>
-          <li>
-            <strong>{codeLines}</strong>
-            <span>lines of code reviewed and shipped</span>
-          </li>
-          <li>
-            <strong>
-              {lateNights} late night{lateNights > 1 ? "s" : ""}
-            </strong>
-            <span>of building, fully fueled</span>
-          </li>
-        </ul>
-
-        <p className="calc-note">
-          mutespeak; has had zero coffees so far — yours could be the first.
-        </p>
-
-        <SupportButton 
-          label={`Support ₹${activeAmount}`} 
-          className="calc-cta" 
-          disabled={activeAmount <= 0}
-          amount={activeAmount}
-          displayName={displayName}
-        />
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------
-// SHARED SUPPORT BUTTON (Dodo Payments Overlay Integration)
-// ---------------------------------------------------------------
-function SupportButton({ label, className = "", disabled = false, amount = 0, displayName = "" }) {
-  const magnetic = useMagnetic();
-  const [loading, setLoading] = useState(false);
-
-  const handlePayment = async () => {
-    if (disabled || amount <= 0 || loading) return;
-    setLoading(true);
-
-    try {
-      const data = await paymentService.createCheckoutSession(amount, displayName);
-      if (data && data.checkoutUrl) {
-        DodoPayments.Checkout.open({ checkoutUrl: data.checkoutUrl });
-      } else {
-        alert("Unable to generate checkout session. Please try again.");
-      }
-    } catch (err) {
-      console.error("Dodo payment initiation error:", err);
-      alert("Payment initiation failed. Please check your network connection.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <button
-      type="button"
-      onClick={handlePayment}
-      className={`support-btn primary active ${className}`}
-      disabled={disabled || loading}
-      {...magnetic}
-    >
-      {loading ? "Preparing Checkout..." : label}
-    </button>
   );
 }
 
@@ -527,22 +375,6 @@ function useCountUp(target, active, duration = 1400) {
   }, [active, target, duration]);
 
   return value;
-}
-
-function useMagnetic() {
-  const ref = useRef(null);
-
-  const onMouseMove = (e) => {
-    const el = ref.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    el.style.setProperty("--mx", `${x}%`);
-    el.style.setProperty("--my", `${y}%`);
-  };
-
-  return { ref, onMouseMove };
 }
 
 // ---------------------------------------------------------------
