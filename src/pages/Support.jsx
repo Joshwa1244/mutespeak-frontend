@@ -5,8 +5,11 @@ import "./Support.css";
 // -------------------------------------------------------------
 // CONFIGURATION
 // -------------------------------------------------------------
-const BMC_LINK = "https://buymeacoffee.com/mutespeak"; // Replace with your actual BMC link
+const BMC_LINK = "https://buymeacoffee.com/mutespeak";
 const API_BASE_URL = "https://site--mutespeak-backend--22t95wnlrvvt.code.run/api/payments";
+
+// Current approximate USD to INR conversion factor for webhook amounts
+const USD_TO_INR_RATE = 95;
 
 const TIMELINE = [
   {
@@ -200,7 +203,7 @@ export default function Support() {
                       </div>
                     </div>
                     <div className="supporter-amount-pill">
-                      ₹{s.amount}
+                      ₹{Math.round((s.amount || 0) * USD_TO_INR_RATE)}
                     </div>
                   </div>
                   <p className="supporter-message">
