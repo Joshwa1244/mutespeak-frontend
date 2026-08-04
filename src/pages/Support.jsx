@@ -5,7 +5,7 @@ import "./Support.css";
 // -------------------------------------------------------------
 // CONFIGURATION
 // -------------------------------------------------------------
-const BMC_LINK = "https://buymeacoffee.com/YOUR_BMC_USERNAME"; // Replace with your actual BMC link
+const BMC_LINK = "https://buymeacoffee.com/mutespeak"; // Replace with your actual BMC link
 const API_BASE_URL = "https://site--mutespeak-backend--22t95wnlrvvt.code.run/api/payments";
 
 const TIMELINE = [
