@@ -150,7 +150,7 @@ export default function Support() {
       </section>
 
       {/* =========================================================
-          PREMIUM SUPPORTERS WALL
+          PREMIUM SUPPORTERS WALL (SCROLLABLE)
       ========================================================== */}
       <section
         className={`support-wall-section${wallIn ? " is-in" : ""}`}
@@ -179,38 +179,40 @@ export default function Support() {
               </a>
             </div>
           ) : (
-            <div className="supporters-grid">
-              {supporters.map((s, index) => (
-                <div 
-                  key={s.id || index} 
-                  className="supporter-card"
-                  style={{ animationDelay: `${index * 80}ms` }}
-                >
-                  <div className="supporter-card-header">
-                    <div className="supporter-identity">
-                      <div className="supporter-avatar-badge">
-                        {(s.displayName || "A").charAt(0).toUpperCase()}
+            <div className="supporters-scroll-area">
+              <div className="supporters-grid">
+                {supporters.map((s, index) => (
+                  <div 
+                    key={s.id || index} 
+                    className="supporter-card"
+                    style={{ animationDelay: `${index * 80}ms` }}
+                  >
+                    <div className="supporter-card-header">
+                      <div className="supporter-identity">
+                        <div className="supporter-avatar-badge">
+                          {(s.displayName || "A").charAt(0).toUpperCase()}
+                        </div>
+                        <div className="supporter-meta">
+                          <h4 className="supporter-name">{s.displayName || "Anonymous"}</h4>
+                          <span className="supporter-date">
+                            {new Date(s.createdAt || Date.now()).toLocaleDateString(undefined, {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </span>
+                        </div>
                       </div>
-                      <div className="supporter-meta">
-                        <h4 className="supporter-name">{s.displayName || "Anonymous"}</h4>
-                        <span className="supporter-date">
-                          {new Date(s.createdAt || Date.now()).toLocaleDateString(undefined, {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric'
-                          })}
-                        </span>
+                      <div className="supporter-amount-pill">
+                        ₹{Math.round((s.amount || 0) * USD_TO_INR_RATE)}
                       </div>
                     </div>
-                    <div className="supporter-amount-pill">
-                      ₹{Math.round((s.amount || 0) * USD_TO_INR_RATE)}
-                    </div>
+                    <p className="supporter-message">
+                      "{s.message || "Brought a coffee to keep mutespeak alive."}"
+                    </p>
                   </div>
-                  <p className="supporter-message">
-                    "{s.message || "Brought a coffee to keep mutespeak alive."}"
-                  </p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
         </div>
