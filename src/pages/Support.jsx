@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { DodoPayments } from "dodopayments-checkout";
-import { paymentService } from "./paymentService";
+import { paymentService } from "../services/paymentService";
 import "./Support.css";
 
 // -------------------------------------------------------------
