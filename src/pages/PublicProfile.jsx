@@ -43,6 +43,11 @@ import {
   subscribe,
 } from "../services/websocketService";
 
+// Instagram Integration
+import {
+  getInstagramProfile,
+} from "../services/instagramService";
+
 
 const POST_PAGE_SIZE = 10;
 
@@ -73,8 +78,12 @@ export default function PublicProfile() {
 
   // AVATAR MODAL STATE
   const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [showInstaAvatarModal, setShowInstaAvatarModal] = useState(false);
 
   const [isPoking, setIsPoking] = useState(false);
+  
+  // SOCIAL HANDLES STATE
+  const [instaProfile, setInstaProfile] = useState(null);
 
 
   // -------------------------------------------------------------
@@ -237,19 +246,23 @@ export default function PublicProfile() {
             userId
           );
 
-
         if (
           cancelled
         ) {
-
           return;
-
         }
-
 
         setUser(
           profile
         );
+        
+        // Fetch Instagram Profile for the public user
+        try {
+          const iProfile = await getInstagramProfile(userId);
+          if (!cancelled) setInstaProfile(iProfile);
+        } catch (err) {
+          console.warn("Could not fetch user's social accounts");
+        }
 
 
       } catch (error) {
@@ -262,11 +275,9 @@ export default function PublicProfile() {
 
         }
 
-
         setUser(
           null
         );
-
 
         setError(
 
@@ -982,11 +993,9 @@ export default function PublicProfile() {
 
   if (loading) {
     return (
-      
         <main className="public-profile-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
           <CreativeLoader message="Fetching profile..." />
         </main>
-     
     );
   }
 
@@ -1000,9 +1009,6 @@ export default function PublicProfile() {
   ) {
 
     return (
-
-     
-
         <div className="public-profile-page" style={{ maxWidth: "800px", margin: "0 auto", padding: "2rem 1rem", fontFamily: "system-ui, sans-serif" }}>
 
           <button
@@ -1029,9 +1035,6 @@ export default function PublicProfile() {
           </section>
 
         </div>
-
-   
-
     );
 
   }
@@ -1190,6 +1193,47 @@ export default function PublicProfile() {
           display: grid;
           grid-template-columns: 1fr;
           gap: 1.25rem;
+        }
+        
+        /* Social Handles */
+        .social-handle-container {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          padding: 1rem;
+          border-radius: 16px;
+          border: 1px solid #f3f4f6;
+          background-color: #fafafa;
+          transition: all 0.2s;
+        }
+        
+        .social-handle-container:hover {
+          border-color: #e5e7eb;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+        
+        .social-icon-wrapper {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 48px;
+          height: 48px;
+          border-radius: 14px;
+          color: white;
+          flex-shrink: 0;
+        }
+        
+        .insta-bg {
+          background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+        }
+        
+        .social-content {
+          flex: 1;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 1rem;
         }
 
         /* Post Styles */
@@ -1381,6 +1425,40 @@ export default function PublicProfile() {
             </div>
           </div>
         </section>
+
+
+        {/* =======================================================
+            SOCIAL HANDLES (Only visible if linked)
+        ======================================================== */}
+        {instaProfile && (
+          <section className="premium-card" style={{ padding: "2rem" }}>
+            <h2 style={{ fontSize: "1.35rem", margin: "0 0 1.5rem 0", color: "var(--text-main)", fontWeight: "700" }}>
+              Social Handles
+            </h2>
+            <div className="social-handle-container">
+              <div className="social-icon-wrapper insta-bg">
+                <InstagramIcon />
+              </div>
+              <div className="social-content" style={{ justifyContent: 'flex-start', gap: '1.5rem' }}>
+                {instaProfile.profilePicUrl && (
+                  <img 
+                    src={instaProfile.profilePicUrl} 
+                    alt="Instagram profile"
+                    onClick={() => setShowInstaAvatarModal(true)} 
+                    style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '1px solid #e5e7eb', cursor: 'pointer' }} 
+                  />
+                )}
+                <div>
+                  <strong style={{ display: 'block', fontSize: '1.1rem', color: 'var(--text-main)' }}>@{instaProfile.handle}</strong>
+                  <a href={`https://instagram.com/${instaProfile.handle}`} target="_blank" rel="noreferrer" style={{ color: 'var(--brand-primary)', fontSize: '0.9rem', textDecoration: 'none', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                    View on Instagram
+                    <ExternalLinkIcon />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
 
         {/* =======================================================
@@ -1595,6 +1673,44 @@ export default function PublicProfile() {
         </div>
       )}
 
+      {/* =========================================================
+          FULL-SCREEN INSTAGRAM AVATAR MODAL
+      ========================================================== */}
+      {showInstaAvatarModal && instaProfile?.profilePicUrl && (
+        <div
+          style={{
+            position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: "rgba(2, 61, 32, 0.95)", zIndex: 9999,
+            display: "flex", justifyContent: "center", alignItems: "center", padding: "1.5rem",
+            backdropFilter: "blur(8px)"
+          }}
+          onClick={() => setShowInstaAvatarModal(false)}
+        >
+          <button
+            onClick={() => setShowInstaAvatarModal(false)}
+            style={{
+              position: "absolute", top: "1.5rem", right: "1.5rem",
+              background: "rgba(255,255,255,0.1)", border: "none", color: "white",
+              cursor: "pointer", padding: "0.75rem", borderRadius: "50%",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              transition: "background 0.2s"
+            }}
+            onMouseOver={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.2)"}
+            onMouseOut={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+            aria-label="Close image"
+          >
+            <CloseIcon />
+          </button>
+          
+          <img
+            src={instaProfile.profilePicUrl}
+            alt={`@${instaProfile.handle}'s Instagram profile full view`}
+            style={{ maxWidth: "100%", maxHeight: "85vh", objectFit: "contain", borderRadius: "12px", boxShadow: "0 20px 50px rgba(0,0,0,0.3)" }}
+            onClick={(e) => e.stopPropagation()} 
+          />
+        </div>
+      )}
+
     </>
   );
 }
@@ -1761,6 +1877,25 @@ function formatPostTime(
 // ---------------------------------------------------------------
 // ICONS
 // ---------------------------------------------------------------
+function InstagramIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+    </svg>
+  );
+}
+
+function ExternalLinkIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+      <polyline points="15 3 21 3 21 9"></polyline>
+      <line x1="10" y1="14" x2="21" y2="3"></line>
+    </svg>
+  );
+}
 
 function BackIcon() {
   return (

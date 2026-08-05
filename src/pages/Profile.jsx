@@ -48,6 +48,12 @@ import {
   subscribe,
 } from "../services/websocketService";
 
+// Instagram Integration
+import {
+  getInstagramProfile,
+  linkInstagramProfile,
+  unlinkInstagramProfile,
+} from "../services/instagramService";
 
 const POST_PAGE_SIZE = 10;
 const MAX_POST_LENGTH = 2000;
@@ -91,7 +97,15 @@ export default function Profile() {
   
   // AVATAR MODAL STATE
   const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [showInstaAvatarModal, setShowInstaAvatarModal] = useState(false);
 
+  // -------------------------------------------------------------
+  // SOCIAL HANDLES STATE
+  // -------------------------------------------------------------
+  const [instaProfile, setInstaProfile] = useState(null);
+  const [instaHandleInput, setInstaHandleInput] = useState("");
+  const [isLinkingInsta, setIsLinkingInsta] = useState(false);
+  const [instaError, setInstaError] = useState("");
 
   // -------------------------------------------------------------
   // MY POSTS STATE
@@ -152,6 +166,15 @@ export default function Profile() {
 
         setUser(currentUser);
         fillForm(currentUser);
+
+        // Fetch Instagram Data gracefully
+        try {
+          const iProfile = await getInstagramProfile(currentUser.id);
+          if (!cancelled) setInstaProfile(iProfile);
+        } catch (err) {
+          console.warn("Could not fetch linked social accounts");
+        }
+
       } catch {
         if (cancelled) return;
         
@@ -392,6 +415,51 @@ export default function Profile() {
       setError(error.message || "Couldn't update your profile.");
     } finally {
       setSaving(false);
+    }
+  }
+
+
+  // -------------------------------------------------------------
+  // SOCIAL HANDLES HANDLERS
+  // -------------------------------------------------------------
+  
+  async function handleLinkInstagram(event) {
+    event.preventDefault();
+    if (!instaHandleInput.trim() || isLinkingInsta) return;
+    
+    setIsLinkingInsta(true);
+    setInstaError("");
+    setSuccess("");
+
+    try {
+      const profile = await linkInstagramProfile(instaHandleInput);
+      setInstaProfile(profile);
+      setInstaHandleInput("");
+      setSuccess("Instagram account linked successfully!");
+    } catch (error) {
+      setInstaError(error.message);
+    } finally {
+      setIsLinkingInsta(false);
+    }
+  }
+
+  async function handleUnlinkInstagram() {
+    if (isLinkingInsta) return;
+    const confirmed = window.confirm("Are you sure you want to unlink your Instagram account?");
+    if (!confirmed) return;
+
+    setIsLinkingInsta(true);
+    setInstaError("");
+    setSuccess("");
+
+    try {
+      await unlinkInstagramProfile();
+      setInstaProfile(null);
+      setSuccess("Instagram account unlinked.");
+    } catch (error) {
+      setInstaError(error.message);
+    } finally {
+      setIsLinkingInsta(false);
     }
   }
 
@@ -832,11 +900,9 @@ export default function Profile() {
 
   if (loading) {
     return (
-      
         <main className="profile-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
           <CreativeLoader message="Loading profile..." />
         </main>
-    
     );
   }
 
@@ -1076,6 +1142,47 @@ export default function Profile() {
           border-color: var(--brand-primary);
           background-color: #ffffff;
           box-shadow: 0 0 0 4px rgba(2, 61, 32, 0.05);
+        }
+
+        /* Social Handles Additions */
+        .social-handle-container {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          padding: 1rem;
+          border-radius: 16px;
+          border: 1px solid #f3f4f6;
+          background-color: #fafafa;
+          transition: all 0.2s;
+        }
+        
+        .social-handle-container:hover {
+          border-color: #e5e7eb;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+        
+        .social-icon-wrapper {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 48px;
+          height: 48px;
+          border-radius: 14px;
+          color: white;
+          flex-shrink: 0;
+        }
+        
+        .insta-bg {
+          background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+        }
+        
+        .social-content {
+          flex: 1;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 1rem;
         }
 
         /* Post Styles */
@@ -1363,6 +1470,78 @@ export default function Profile() {
 
 
         {/* =====================================================
+            SOCIAL HANDLES
+        ====================================================== */}
+        <section className="premium-card" style={{ padding: "2rem" }}>
+          <h2 style={{ fontSize: "1.35rem", margin: "0 0 1.5rem 0", color: "var(--text-main)", fontWeight: "700" }}>
+            Social Handles
+          </h2>
+
+          {instaError && (
+            <div className="premium-banner-msg premium-banner-error">
+              {instaError}
+            </div>
+          )}
+
+          <div className="social-handle-container">
+            <div className="social-icon-wrapper insta-bg">
+              <InstagramIcon />
+            </div>
+            
+            <div className="social-content">
+              {instaProfile ? (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    {instaProfile.profilePicUrl && (
+                      <img 
+                        src={instaProfile.profilePicUrl} 
+                        alt="Instagram Profile" 
+                        onClick={() => setShowInstaAvatarModal(true)}
+                        style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', cursor: 'pointer' }} 
+                      />
+                    )}
+                    <div>
+                      <strong style={{ display: 'block', fontSize: '1.05rem' }}>@{instaProfile.handle}</strong>
+                      <a href={`https://instagram.com/${instaProfile.handle}`} target="_blank" rel="noreferrer" style={{ color: 'var(--brand-primary)', fontSize: '0.85rem', textDecoration: 'none', fontWeight: '500' }}>
+                        View Profile ↗
+                      </a>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={handleUnlinkInstagram} 
+                    disabled={isLinkingInsta} 
+                    className="btn-premium btn-danger" 
+                    style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+                  >
+                    Unlink
+                  </button>
+                </>
+              ) : (
+                <form onSubmit={handleLinkInstagram} style={{ display: 'flex', width: '100%', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <input
+                    type="text"
+                    className="premium-input"
+                    placeholder="Enter your Instagram handle (e.g. joshwaantonyy)"
+                    value={instaHandleInput}
+                    onChange={(e) => setInstaHandleInput(e.target.value)}
+                    style={{ flex: 1, minWidth: '180px', padding: '10px 14px' }}
+                  />
+                  <button 
+                    type="submit" 
+                    disabled={isLinkingInsta || !instaHandleInput.trim()} 
+                    className="btn-premium btn-primary" 
+                    style={{ padding: '10px 24px' }}
+                  >
+                    {isLinkingInsta ? "Connecting..." : "Connect"}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        </section>
+
+
+        {/* =====================================================
             MY POSTS
         ====================================================== */}
         
@@ -1603,6 +1782,43 @@ export default function Profile() {
         </div>
       )}
 
+      {/* =========================================================
+          FULL-SCREEN INSTAGRAM AVATAR MODAL
+      ========================================================== */}
+      {showInstaAvatarModal && instaProfile?.profilePicUrl && (
+        <div
+          style={{
+            position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: "rgba(2, 61, 32, 0.95)", zIndex: 9999,
+            display: "flex", justifyContent: "center", alignItems: "center", padding: "1.5rem",
+            backdropFilter: "blur(8px)"
+          }}
+          onClick={() => setShowInstaAvatarModal(false)}
+        >
+          <button
+            onClick={() => setShowInstaAvatarModal(false)}
+            style={{
+              position: "absolute", top: "1.5rem", right: "1.5rem",
+              background: "rgba(255,255,255,0.1)", border: "none", color: "white",
+              cursor: "pointer", padding: "0.75rem", borderRadius: "50%",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              transition: "background 0.2s"
+            }}
+            onMouseOver={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.2)"}
+            onMouseOut={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+            aria-label="Close image"
+          >
+            <CloseIcon />
+          </button>
+          <img
+            src={instaProfile.profilePicUrl}
+            alt={`@${instaProfile.handle} Instagram profile full view`}
+            style={{ maxWidth: "100%", maxHeight: "85vh", objectFit: "contain", borderRadius: "12px", boxShadow: "0 20px 50px rgba(0,0,0,0.3)" }}
+            onClick={(e) => e.stopPropagation()} 
+          />
+        </div>
+      )}
+
     </>
   );
 }
@@ -1648,6 +1864,16 @@ function formatPostTime(createdAt) {
 // ---------------------------------------------------------------
 // ICONS
 // ---------------------------------------------------------------
+
+function InstagramIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+    </svg>
+  );
+}
 
 function LikeIcon({ filled = false }) {
   return (
