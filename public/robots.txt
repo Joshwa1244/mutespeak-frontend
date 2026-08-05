@@ -5,6 +5,6 @@ Allow: /
 # Update these to match your actual React Router paths.
 Disallow: /feed
 Disallow: /profile
-Disallow: /wall
+
 
 Sitemap: https://www.mutespeak.com/sitemap.xml
