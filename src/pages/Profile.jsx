@@ -1517,23 +1517,29 @@ export default function Profile() {
                   </button>
                 </>
               ) : (
-                <form onSubmit={handleLinkInstagram} style={{ display: 'flex', width: '100%', gap: '0.75rem', flexWrap: 'wrap' }}>
-                  <input
-                    type="text"
-                    className="premium-input"
-                    placeholder="Enter your Instagram handle (e.g. joshwaantonyy)"
-                    value={instaHandleInput}
-                    onChange={(e) => setInstaHandleInput(e.target.value)}
-                    style={{ flex: 1, minWidth: '180px', padding: '10px 14px' }}
-                  />
-                  <button 
-                    type="submit" 
-                    disabled={isLinkingInsta || !instaHandleInput.trim()} 
-                    className="btn-premium btn-primary" 
-                    style={{ padding: '10px 24px' }}
-                  >
-                    {isLinkingInsta ? "Connecting..." : "Connect"}
-                  </button>
+                <form onSubmit={handleLinkInstagram} style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '0.5rem' }}>
+                  <label htmlFor="instagram-username" className="premium-label">
+                    Enter your Instagram username
+                  </label>
+                  <div style={{ display: 'flex', width: '100%', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <input
+                      id="instagram-username"
+                      type="text"
+                      className="premium-input"
+                      placeholder="e.g. joshwaantonyy"
+                      value={instaHandleInput}
+                      onChange={(e) => setInstaHandleInput(e.target.value)}
+                      style={{ flex: '1 1 200px', padding: '10px 14px' }}
+                    />
+                    <button 
+                      type="submit" 
+                      disabled={isLinkingInsta || !instaHandleInput.trim()} 
+                      className="btn-premium btn-primary" 
+                      style={{ padding: '10px 24px', flex: '1 1 auto', textAlign: 'center' }}
+                    >
+                      {isLinkingInsta ? "Connecting..." : "Connect"}
+                    </button>
+                  </div>
                 </form>
               )}
             </div>
