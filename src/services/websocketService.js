@@ -4,8 +4,8 @@ import SockJS from "sockjs-client";
 import { getToken } from "./authService";
 
 const WS_URL = 
-"http://localhost:8080/ws/mutespeak";
-//"https://site--mutespeak-backend--22t95wnlrvvt.code.run/ws/mutespeak";
+//"http://localhost:8080/ws/mutespeak";
+"https://site--mutespeak-backend--22t95wnlrvvt.code.run/ws/mutespeak";
 let client = null;
 let connected = false;
 
