@@ -6,7 +6,7 @@ import CommentPanel from "../components/CommentPanel";
 import UserAvatar from "../components/UserAvatar";
 
 import { getCurrentUser, logout } from "../services/authService";
-import { createPost, getFeed, toggleLike } from "../services/postService";
+import { createPost, createImagePost, getFeed, toggleLike } from "../services/postService";
 
 import CreativeLoader from "../components/CreativeLoader";
 import SplashLoader from "../components/SplashLoader";
@@ -18,10 +18,13 @@ import {
 
 const PAGE_SIZE = 10;
 const MAX_POST_LENGTH = 2000;
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 export default function Home() {
   const navigate = useNavigate();
   const observerRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   // -------------------------------------------------------------
   // USER / AUTH STATE
@@ -33,6 +36,8 @@ export default function Home() {
   // POST COMPOSER STATE
   // -------------------------------------------------------------
   const [content, setContent] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
   const [posting, setPosting] = useState(false);
   const [postError, setPostError] = useState("");
 
@@ -52,9 +57,10 @@ export default function Home() {
   const [likingPosts, setLikingPosts] = useState(new Set());
 
   // -------------------------------------------------------------
-  // COMMENT PANEL STATE
+  // COMMENT PANEL & MODAL STATE
   // -------------------------------------------------------------
   const [selectedPost, setSelectedPost] = useState(null);
+  const [fullScreenImage, setFullScreenImage] = useState(null);
 
   // -------------------------------------------------------------
   // PENDING POSTS QUEUE (PREVENTS LAYOUT SHIFT)
@@ -64,7 +70,6 @@ export default function Home() {
   // -------------------------------------------------------------
   // SPLASH SCREEN SESSION STATE
   // -------------------------------------------------------------
-  // We strictly check this ONCE when the component mounts.
   const [isInitialSessionLoad] = useState(() => {
     return sessionStorage.getItem("mutespeak_splash_shown") !== "true";
   });
@@ -72,15 +77,20 @@ export default function Home() {
   const isLoadingData = authLoading || feedLoading;
 
   useEffect(() => {
-    // Set the flag once data is fully loaded, so subsequent tab visits skip the splash entirely
     if (isInitialSessionLoad && !isLoadingData) {
       sessionStorage.setItem("mutespeak_splash_shown", "true");
     }
   }, [isInitialSessionLoad, isLoadingData]);
 
+  // Cleanup object URLs to avoid memory leaks
+  useEffect(() => {
+    return () => {
+      if (imagePreview) URL.revokeObjectURL(imagePreview);
+    };
+  }, [imagePreview]);
+
   function handleRevealNewPosts() {
     setPosts((currentPosts) => {
-      // Safe merge to prevent duplicate keys
       const existingIds = new Set(currentPosts.map((p) => p.id));
       const uniquePending = pendingPosts.filter((p) => !existingIds.has(p.id));
       return [...uniquePending, ...currentPosts];
@@ -89,10 +99,8 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  // Monitor scrolling to automatically reveal posts if user scrolls to top manually
   useEffect(() => {
     function handleScroll() {
-      // If user reaches the top and there are pending posts, reveal them automatically
       if (window.scrollY < 50 && pendingPosts.length > 0) {
         setPosts((currentPosts) => {
           const existingIds = new Set(currentPosts.map((p) => p.id));
@@ -116,55 +124,33 @@ export default function Home() {
     async function loadCurrentUser() {
       try {
         const currentUser = await getCurrentUser();
-
-        if (cancelled) {
-          return;
-        }
-
+        if (cancelled) return;
         if (!currentUser.profileCompleted) {
           navigate("/complete-profile", { replace: true });
           return;
         }
-
         setUser(currentUser);
       } catch {
-        if (cancelled) {
-          return;
-        }
-
+        if (cancelled) return;
         logout();
-        
-        // Wipe the flag if auth fails so the splash plays on the next clean login
         sessionStorage.removeItem("mutespeak_splash_shown");
-
         navigate("/", {
           replace: true,
-          state: {
-            message: "Please log in to continue.",
-          },
+          state: { message: "Please log in to continue." },
         });
       } finally {
-        if (!cancelled) {
-          setAuthLoading(false);
-        }
+        if (!cancelled) setAuthLoading(false);
       }
     }
-
     loadCurrentUser();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [navigate]);
 
   // -------------------------------------------------------------
   // INITIAL FEED
   // -------------------------------------------------------------
   useEffect(() => {
-    if (!user) {
-      return;
-    }
-
+    if (!user) return;
     let cancelled = false;
 
     async function loadInitialFeed() {
@@ -173,32 +159,20 @@ export default function Home() {
 
       try {
         const result = await getFeed(0, PAGE_SIZE);
-
-        if (cancelled) {
-          return;
-        }
-
+        if (cancelled) return;
         const initialPosts = Array.isArray(result) ? result : [];
-
         setPosts(initialPosts);
         setPage(0);
         setHasMore(initialPosts.length === PAGE_SIZE);
       } catch (error) {
-        if (!cancelled) {
-          setFeedError(error.message || "Couldn't load posts.");
-        }
+        if (!cancelled) setFeedError(error.message || "Couldn't load posts.");
       } finally {
-        if (!cancelled) {
-          setFeedLoading(false);
-        }
+        if (!cancelled) setFeedLoading(false);
       }
     }
 
     loadInitialFeed();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [user?.id]);
 
   // -------------------------------------------------------------
@@ -215,152 +189,72 @@ export default function Home() {
     let commentDeleteSubscription = null;
 
     connectWebSocket(() => {
-      console.log("WebSocket connected. Setting up subscriptions...");
-      
-      // 1. Listen for new posts
       postSubscription = subscribe("/topic/feed", (event) => {
         const incomingPost = event.post || event;
-
         if (window.scrollY > 200) {
           setPendingPosts((currentPending) => {
-            if (currentPending.some((p) => p.id === incomingPost.id)) {
-              return currentPending;
-            }
+            if (currentPending.some((p) => p.id === incomingPost.id)) return currentPending;
             return [incomingPost, ...currentPending];
           });
         } else {
           setPosts((currentPosts) => {
-            if (currentPosts.some((p) => p.id === incomingPost.id)) {
-              return currentPosts;
-            }
+            if (currentPosts.some((p) => p.id === incomingPost.id)) return currentPosts;
             return [incomingPost, ...currentPosts];
           });
         }
       });
 
-      // 2. Listen for updated (edited) posts
       postUpdateSubscription = subscribe("/topic/feed/update", (event) => {
         const updatedPost = event.post || event;
-
-        // Update post in main feed
         setPosts((currentPosts) =>
-          currentPosts.map((post) =>
-            post.id === updatedPost.id
-              ? { ...post, ...updatedPost }
-              : post
-          )
+          currentPosts.map((post) => post.id === updatedPost.id ? { ...post, ...updatedPost } : post)
         );
-
-        // Update post if it's sitting in the pending posts queue
         setPendingPosts((currentPending) =>
-          currentPending.map((post) =>
-            post.id === updatedPost.id
-              ? { ...post, ...updatedPost }
-              : post
-          )
+          currentPending.map((post) => post.id === updatedPost.id ? { ...post, ...updatedPost } : post)
         );
-
-        // Update the selected post if the comment panel is currently open for it
         setSelectedPost((currentPost) => {
-          if (currentPost && currentPost.id === updatedPost.id) {
-            return { ...currentPost, ...updatedPost };
-          }
+          if (currentPost && currentPost.id === updatedPost.id) return { ...currentPost, ...updatedPost };
           return currentPost;
         });
       });
 
-      // 3. Listen for deleted posts
       postDeleteSubscription = subscribe("/topic/feed/delete", (event) => {
         const deletedPostId = event.postId || event.id;
-
-        setPosts((currentPosts) =>
-          currentPosts.filter((post) => post.id !== deletedPostId)
-        );
-
-        setPendingPosts((currentPending) =>
-          currentPending.filter((post) => post.id !== deletedPostId)
-        );
-
+        setPosts((currentPosts) => currentPosts.filter((post) => post.id !== deletedPostId));
+        setPendingPosts((currentPending) => currentPending.filter((post) => post.id !== deletedPostId));
         setSelectedPost((currentPost) => {
-          if (currentPost && currentPost.id === deletedPostId) {
-            return null;
-          }
+          if (currentPost && currentPost.id === deletedPostId) return null;
           return currentPost;
         });
       });
 
-      // 4. Listen for real-time Like updates
       likeSubscription = subscribe("/topic/likes", (event) => {
         setPosts((currentPosts) =>
-          currentPosts.map((post) =>
-            post.id === event.postId
-              ? {
-                  ...post,
-                  likeCount: event.likeCount,
-                }
-              : post
-          )
+          currentPosts.map((post) => post.id === event.postId ? { ...post, likeCount: event.likeCount } : post)
         );
-
         setSelectedPost((currentPost) => {
-          if (!currentPost || currentPost.id !== event.postId) {
-            return currentPost;
-          }
-
-          return {
-            ...currentPost,
-            likeCount: event.likeCount,
-          };
+          if (!currentPost || currentPost.id !== event.postId) return currentPost;
+          return { ...currentPost, likeCount: event.likeCount };
         });
       });
 
-      // 5. Listen for real-time Comment additions
       commentSubscription = subscribe("/topic/comments", (event) => {
         setPosts((currentPosts) =>
-          currentPosts.map((post) =>
-            post.id === event.postId
-              ? { 
-                  ...post, 
-                  commentCount: (post.commentCount || 0) + 1 
-                }
-              : post
-          )
+          currentPosts.map((post) => post.id === event.postId ? { ...post, commentCount: (post.commentCount || 0) + 1 } : post)
         );
-
         setSelectedPost((currentPost) => {
-          if (!currentPost || currentPost.id !== event.postId) {
-            return currentPost;
-          }
-          return { 
-            ...currentPost, 
-            commentCount: (currentPost.commentCount || 0) + 1 
-          };
+          if (!currentPost || currentPost.id !== event.postId) return currentPost;
+          return { ...currentPost, commentCount: (currentPost.commentCount || 0) + 1 };
         });
       });
 
-      // 6. Listen for real-time Comment deletions
       commentDeleteSubscription = subscribe("/topic/comments/delete", (event) => {
-        const targetPostId = event.postId;
-
         setPosts((currentPosts) =>
-          currentPosts.map((post) =>
-            post.id === targetPostId
-              ? { 
-                  ...post, 
-                  commentCount: Math.max((post.commentCount || 0) - 1, 0) 
-                }
-              : post
-          )
+          currentPosts.map((post) => post.id === event.postId ? { ...post, commentCount: Math.max((post.commentCount || 0) - 1, 0) } : post)
         );
-
         setSelectedPost((currentPost) => {
-          if (!currentPost || currentPost.id !== targetPostId) {
-            return currentPost;
-          }
-          return { 
-            ...currentPost, 
-            commentCount: Math.max((currentPost.commentCount || 0) - 1, 0) 
-          };
+          if (!currentPost || currentPost.id !== event.postId) return currentPost;
+          return { ...currentPost, commentCount: Math.max((currentPost.commentCount || 0) - 1, 0) };
         });
       });
     });
@@ -380,31 +274,21 @@ export default function Home() {
   // LOAD MORE POSTS
   // -------------------------------------------------------------
   const loadMorePosts = useCallback(async () => {
-    if (feedLoading || loadingMore || !hasMore) {
-      return;
-    }
-
+    if (feedLoading || loadingMore || !hasMore) return;
     const nextPage = page + 1;
-
     setLoadingMore(true);
     setFeedError("");
 
     try {
       const result = await getFeed(nextPage, PAGE_SIZE);
       const newPosts = Array.isArray(result) ? result : [];
-
       setPosts((currentPosts) => {
         const existingIds = new Set(currentPosts.map((post) => post.id));
         const uniquePosts = newPosts.filter((post) => !existingIds.has(post.id));
-
         return [...currentPosts, ...uniquePosts];
       });
-
       setPage(nextPage);
-
-      if (newPosts.length < PAGE_SIZE) {
-        setHasMore(false);
-      }
+      if (newPosts.length < PAGE_SIZE) setHasMore(false);
     } catch (error) {
       setFeedError(error.message || "Couldn't load more posts.");
     } finally {
@@ -412,50 +296,57 @@ export default function Home() {
     }
   }, [feedLoading, loadingMore, hasMore, page]);
 
-  // -------------------------------------------------------------
-  // INFINITE SCROLL OBSERVER
-  // -------------------------------------------------------------
-  const lastPostRef = useCallback(
-    (node) => {
-      if (feedLoading || loadingMore) {
-        return;
-      }
-
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
+  const lastPostRef = useCallback((node) => {
+      if (feedLoading || loadingMore) return;
+      if (observerRef.current) observerRef.current.disconnect();
 
       observerRef.current = new IntersectionObserver(
         (entries) => {
-          const entry = entries[0];
-
-          if (entry.isIntersecting && hasMore) {
-            loadMorePosts();
-          }
+          if (entries[0].isIntersecting && hasMore) loadMorePosts();
         },
-        {
-          rootMargin: "300px 0px",
-          threshold: 0,
-        }
+        { rootMargin: "300px 0px", threshold: 0 }
       );
 
-      if (node) {
-        observerRef.current.observe(node);
-      }
-    },
-    [feedLoading, loadingMore, hasMore, loadMorePosts]
+      if (node) observerRef.current.observe(node);
+    }, [feedLoading, loadingMore, hasMore, loadMorePosts]
   );
 
-  // -------------------------------------------------------------
-  // CLEAN UP OBSERVER
-  // -------------------------------------------------------------
   useEffect(() => {
     return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
+      if (observerRef.current) observerRef.current.disconnect();
     };
   }, []);
+
+  // -------------------------------------------------------------
+  // COMPOSER IMAGE HANDLING
+  // -------------------------------------------------------------
+  function handleImageSelected(event) {
+    const file = event.target.files?.[0];
+    event.target.value = ""; 
+    
+    if (!file) return;
+    setPostError("");
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      setPostError("Only JPG, PNG and WebP images are allowed.");
+      return;
+    }
+    if (file.size > MAX_IMAGE_SIZE) {
+      setPostError("Image cannot exceed 5 MB.");
+      return;
+    }
+
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+
+    setSelectedImage(file);
+    setImagePreview(URL.createObjectURL(file));
+  }
+
+  function handleCancelImage() {
+    setSelectedImage(null);
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImagePreview("");
+  }
 
   // -------------------------------------------------------------
   // CREATE POST
@@ -465,10 +356,11 @@ export default function Home() {
 
     const cleanContent = content.trim();
 
+    // Ensure content is provided to match original constraints
     if (!cleanContent) {
+      setPostError("Please write something to share.");
       return;
     }
-
     if (cleanContent.length > MAX_POST_LENGTH) {
       setPostError(`Post cannot exceed ${MAX_POST_LENGTH} characters.`);
       return;
@@ -478,8 +370,13 @@ export default function Home() {
     setPostError("");
 
     try {
-      await createPost(cleanContent);
+      if (selectedImage) {
+        await createImagePost(cleanContent, selectedImage);
+      } else {
+        await createPost(cleanContent);
+      }
       setContent("");
+      handleCancelImage(); // Clean up image state perfectly
     } catch (error) {
       setPostError(error.message || "Couldn't publish your post.");
     } finally {
@@ -491,9 +388,7 @@ export default function Home() {
   // TOGGLE LIKE
   // -------------------------------------------------------------
   async function handleToggleLike(postId) {
-    if (likingPosts.has(postId)) {
-      return;
-    }
+    if (likingPosts.has(postId)) return;
 
     setLikingPosts((current) => {
       const next = new Set(current);
@@ -506,28 +401,14 @@ export default function Home() {
 
       setPosts((currentPosts) =>
         currentPosts.map((post) => {
-          if (post.id !== postId) {
-            return post;
-          }
-
-          return {
-            ...post,
-            likeCount: result.likeCount,
-            likedByMe: result.likedByMe,
-          };
+          if (post.id !== postId) return post;
+          return { ...post, likeCount: result.likeCount, likedByMe: result.likedByMe };
         })
       );
 
       setSelectedPost((currentPost) => {
-        if (!currentPost || currentPost.id !== postId) {
-          return currentPost;
-        }
-
-        return {
-          ...currentPost,
-          likeCount: result.likeCount,
-          likedByMe: result.likedByMe,
-        };
+        if (!currentPost || currentPost.id !== postId) return currentPost;
+        return { ...currentPost, likeCount: result.likeCount, likedByMe: result.likedByMe };
       });
     } catch (error) {
       console.error("Couldn't update like:", error);
@@ -540,24 +421,10 @@ export default function Home() {
     }
   }
 
-  // -------------------------------------------------------------
-  // AUTH LOADING / NULL USER
-  // -------------------------------------------------------------
-  if (!authLoading && !user) {
-    return null;
-  }
+  if (!authLoading && !user) return null;
 
-  // -------------------------------------------------------------
-  // HOME RENDER
-  // -------------------------------------------------------------
   return (
     <>
-      {/* 
-        PREMIUM RESPONSIVE STYLES
-        Mutespeak Brand Colors:
-        - Primary Dark Green: #023d20
-        - Accent Olive Green: #b6c324
-      */}
       <style>{`
         :root {
           --brand-primary: #023d20;
@@ -569,7 +436,6 @@ export default function Home() {
           --text-muted: #6b7280;
         }
 
-        /* Base Layout */
         .premium-container {
           max-width: 800px;
           margin: 0 auto;
@@ -578,7 +444,6 @@ export default function Home() {
           animation: fadeIn 0.4s ease-out forwards;
         }
 
-        /* Cards */
         .premium-card {
           background-color: #ffffff;
           border-radius: 20px;
@@ -589,7 +454,6 @@ export default function Home() {
           transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        /* Buttons */
         .btn-premium {
           display: inline-flex;
           align-items: center;
@@ -624,7 +488,6 @@ export default function Home() {
           transform: none;
         }
 
-        /* Input */
         .premium-input {
           padding: 14px 16px;
           border-radius: 16px;
@@ -645,7 +508,6 @@ export default function Home() {
           box-shadow: 0 0 0 4px rgba(2, 61, 32, 0.05);
         }
 
-        /* Badge */
         .premium-badge-container {
           position: sticky;
           top: 1rem;
@@ -677,7 +539,6 @@ export default function Home() {
           box-shadow: 0 6px 20px rgba(182, 195, 36, 0.4);
         }
 
-        /* Post Styles */
         .premium-post-card {
           background-color: #ffffff;
           border-radius: 20px;
@@ -727,6 +588,26 @@ export default function Home() {
           background-color: rgba(182, 195, 36, 0.05);
         }
 
+        .mini-action-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 8px 12px;
+          border-radius: 20px;
+          border: none;
+          background-color: #f9fafb;
+          color: var(--text-muted);
+          font-weight: 600;
+          font-size: 0.85rem;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .mini-action-btn:hover:not(:disabled) {
+          background-color: rgba(2, 61, 32, 0.05);
+          color: var(--brand-primary);
+        }
+
         .premium-banner-msg {
           padding: 14px 16px;
           border-radius: 12px;
@@ -748,39 +629,25 @@ export default function Home() {
           to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Responsive Breakpoints */
         @media (min-width: 640px) {
           .premium-container { padding: 2rem 1.5rem; }
           .feed-action-btn { flex: none; justify-content: flex-start; }
         }
       `}</style>
 
-      {/* 
-          1. Only mount the SplashLoader if this is the very first visit in the session.
-             By doing this conditionally, we guarantee it physically cannot flash on screen
-             during subsequent tab navigations.
-      */}
       {isInitialSessionLoad && <SplashLoader isLoading={isLoadingData} />}
 
-      {/* 
-          2. We now render the layout unconditionally once mounted. 
-             This prevents the Header and Nav from disappearing.
-      */}
       <div style={{ visibility: isInitialSessionLoad && isLoadingData ? "hidden" : "visible" }}>
         
-          {/* 3. Fallback loader when navigating back to Home later in the active session */}
           {!isInitialSessionLoad && authLoading ? (
             <div style={{ minHeight: "50vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <CreativeLoader message="Authenticating..." />
             </div>
           ) : user ? (
             <>
-              {/* Main app content. Safely render only when user exists. */}
               <section className="premium-container">
                 
-                {/* =======================================================
-                    NEW POSTS NOTIFICATION BADGE
-                ======================================================== */}
+                {/* NEW POSTS BADGE */}
                 {pendingPosts.length > 0 && (
                   <div className="premium-badge-container">
                     <button
@@ -793,18 +660,12 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* =======================================================
-                    POST COMPOSER
-                ======================================================== */}
+                {/* POST COMPOSER */}
                 <form className="premium-card" style={{ padding: "1.5rem" }} onSubmit={handleCreatePost}>
                   
                   <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start", marginBottom: "1rem" }}>
                     <div style={{ flexShrink: 0 }}>
-                      <UserAvatar
-                        name={user.name}
-                        profilePictureUrl={user.profilePictureUrl}
-                        size="medium"
-                      />
+                      <UserAvatar name={user.name} profilePictureUrl={user.profilePictureUrl} size="medium" />
                     </div>
 
                     <textarea
@@ -819,16 +680,56 @@ export default function Home() {
                     />
                   </div>
 
+                  {/* IMAGE PREVIEW AREA */}
+                  {imagePreview && (
+                    <div style={{ margin: "0 0 1rem 3.5rem", position: "relative", display: "inline-block" }}>
+                      <img 
+                        src={imagePreview} 
+                        alt="Upload preview" 
+                        style={{ borderRadius: "12px", maxHeight: "200px", maxWidth: "100%", objectFit: "cover", border: "1px solid #e5e7eb" }} 
+                      />
+                      <button 
+                        type="button" 
+                        onClick={handleCancelImage} 
+                        disabled={posting}
+                        style={{ position: "absolute", top: "8px", right: "8px", background: "rgba(0,0,0,0.6)", color: "white", border: "none", borderRadius: "50%", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                      >
+                        <CloseIcon size={16} />
+                      </button>
+                    </div>
+                  )}
+
                   {postError && (
                     <div className="premium-banner-msg premium-banner-error" style={{ marginBottom: "1rem" }}>
                       {postError}
                     </div>
                   )}
 
+                  {/* COMPOSER ACTIONS */}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #f3f4f6", paddingTop: "1rem" }}>
-                    <small style={{ color: "#9ca3af", fontWeight: "600", fontSize: "0.85rem" }}>
-                      {content.length}/{MAX_POST_LENGTH}
-                    </small>
+                    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                      
+                      <button 
+                        type="button" 
+                        className="mini-action-btn"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={posting}
+                      >
+                        <ImageIcon />
+                        <span style={{ marginLeft: "4px" }}>Image</span>
+                      </button>
+                      <input 
+                        type="file" 
+                        accept="image/jpeg, image/png, image/webp" 
+                        hidden 
+                        ref={fileInputRef} 
+                        onChange={handleImageSelected} 
+                      />
+
+                      <small style={{ color: "#9ca3af", fontWeight: "600", fontSize: "0.85rem" }}>
+                        {content.length}/{MAX_POST_LENGTH}
+                      </small>
+                    </div>
 
                     <button
                       type="submit"
@@ -840,73 +741,55 @@ export default function Home() {
                   </div>
                 </form>
 
-                {/* =======================================================
-                    FEED
-                ======================================================== */}
+                {/* FEED */}
                 <div>
-
-                  {/* INITIAL FEED LOADING */}
                   {feedLoading && posts.length === 0 && !isInitialSessionLoad && (
-                    <div style={{ padding: "2rem 0" }}>
-                      <CreativeLoader message="Loading posts..." />
-                    </div>
+                    <div style={{ padding: "2rem 0" }}><CreativeLoader message="Loading posts..." /></div>
                   )}
 
-                  {/* POSTS */}
                   {posts.map((post, index) => {
                     const isLastPost = index === posts.length - 1;
-
                     return (
-                      <article
-                        key={post.id}
-                        className="premium-post-card"
-                        ref={isLastPost ? lastPostRef : null}
-                      >
+                      <article key={post.id} className="premium-post-card" ref={isLastPost ? lastPostRef : null}>
 
-                        {/* =================================================
-                            POST HEADER
-                        ================================================== */}
+                        {/* POST HEADER */}
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.25rem", flexWrap: "wrap", gap: "0.75rem" }}>
-                          
                           <button
                             type="button"
                             onClick={() => navigate(`/profile/${post.author.id}`)}
                             style={{ background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer", display: "flex", gap: "0.85rem", alignItems: "center" }}
                           >
-                            <UserAvatar
-                              name={post.author.name}
-                              profilePictureUrl={post.author.profilePictureUrl}
-                              size="medium"
-                            />
-
+                            <UserAvatar name={post.author.name} profilePictureUrl={post.author.profilePictureUrl} size="medium" />
                             <div>
-                              <strong style={{ display: "block", color: "var(--text-main)", lineHeight: 1.2, fontSize: "1.05rem" }}>
-                                {post.author.name}
-                              </strong>
-                              <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: "500" }}>
-                                {formatAuthorDetails(post.author)}
-                              </span>
+                              <strong style={{ display: "block", color: "var(--text-main)", lineHeight: 1.2, fontSize: "1.05rem" }}>{post.author.name}</strong>
+                              <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: "500" }}>{formatAuthorDetails(post.author)}</span>
                             </div>
                           </button>
-
-                          <time dateTime={post.createdAt} style={{ fontSize: "0.85rem", color: "#9ca3af", fontWeight: "500" }}>
-                            {formatPostTime(post.createdAt)}
-                          </time>
+                          <time dateTime={post.createdAt} style={{ fontSize: "0.85rem", color: "#9ca3af", fontWeight: "500" }}>{formatPostTime(post.createdAt)}</time>
                         </div>
 
-                        {/* =================================================
-                            POST CONTENT
-                        ================================================== */}
+                        {/* POST CONTENT */}
                         <p style={{ margin: "0 0 1.25rem 0", color: "#374151", lineHeight: 1.6, whiteSpace: "pre-wrap", fontSize: "1.05rem" }}>
                           {post.content}
                         </p>
 
-                        {/* =================================================
-                            POST ACTIONS
-                        ================================================== */}
-                        <div className="post-action-row">
+                        {/* POST IMAGE */}
+                        {post.imageUrl && (
+                          <div 
+                            style={{ margin: "0 0 1.25rem 0", borderRadius: "16px", overflow: "hidden", cursor: "zoom-in", border: "1px solid rgba(0,0,0,0.04)" }} 
+                            onClick={() => setFullScreenImage(post.imageUrl)}
+                          >
+                            <img 
+                              src={post.imageUrl} 
+                              alt="Post attachment" 
+                              loading="lazy"
+                              style={{ width: "100%", maxHeight: "500px", objectFit: "cover", display: "block" }} 
+                            />
+                          </div>
+                        )}
 
-                          {/* LIKE */}
+                        {/* POST ACTIONS */}
+                        <div className="post-action-row">
                           <button
                             type="button"
                             className={`feed-action-btn ${post.likedByMe ? 'liked' : ''}`}
@@ -916,49 +799,27 @@ export default function Home() {
                           >
                             <LikeIcon filled={post.likedByMe} />
                             <span>{post.likedByMe ? "Liked" : "Like"}</span>
-                            {post.likeCount > 0 && (
-                              <span style={{ marginLeft: "4px" }}>{post.likeCount}</span>
-                            )}
+                            {post.likeCount > 0 && <span style={{ marginLeft: "4px" }}>{post.likeCount}</span>}
                           </button>
 
-                          {/* COMMENT */}
-                          <button
-                            type="button"
-                            className="feed-action-btn"
-                            onClick={() => setSelectedPost(post)}
-                          >
+                          <button type="button" className="feed-action-btn" onClick={() => setSelectedPost(post)}>
                             <CommentIcon />
                             <span>Comment</span>
-                            {post.commentCount > 0 && (
-                              <span style={{ marginLeft: "4px" }}>{post.commentCount}</span>
-                            )}
+                            {post.commentCount > 0 && <span style={{ marginLeft: "4px" }}>{post.commentCount}</span>}
                           </button>
                         </div>
                       </article>
                     );
                   })}
 
-                  {/* =====================================================
-                      INFINITE SCROLL LOADING
-                  ====================================================== */}
                   {loadingMore && (
-                    <div style={{ textAlign: "center", padding: "2rem 0" }}>
-                      <CreativeLoader message="Loading more posts..." />
-                    </div>
+                    <div style={{ textAlign: "center", padding: "2rem 0" }}><CreativeLoader message="Loading more posts..." /></div>
                   )}
 
-                  {/* =====================================================
-                      FEED ERROR
-                  ====================================================== */}
                   {feedError && (
-                    <div className="premium-banner-msg premium-banner-error">
-                      {feedError}
-                    </div>
+                    <div className="premium-banner-msg premium-banner-error">{feedError}</div>
                   )}
 
-                  {/* =====================================================
-                      EMPTY FEED
-                  ====================================================== */}
                   {!feedLoading && !feedError && posts.length === 0 && (
                     <div style={{ textAlign: "center", padding: "4rem 2rem", backgroundColor: "#ffffff", borderRadius: "20px", border: "2px dashed #e5e7eb", boxShadow: "0 4px 15px rgba(0,0,0,0.02)" }}>
                       <strong style={{ display: "block", color: "var(--brand-primary)", fontSize: "1.2rem", marginBottom: "0.5rem" }}>No posts yet</strong>
@@ -966,9 +827,6 @@ export default function Home() {
                     </div>
                   )}
 
-                  {/* =====================================================
-                      END OF FEED
-                  ====================================================== */}
                   {!feedLoading && !loadingMore && !hasMore && posts.length > 0 && (
                     <p style={{ textAlign: "center", color: "#9ca3af", marginTop: "3rem", marginBottom: "2rem", fontSize: "0.95rem", fontWeight: "500" }}>
                       — You've reached the end —
@@ -977,15 +835,37 @@ export default function Home() {
                 </div>
               </section>
 
-              {/* =========================================================
-                  COMMENT PANEL
-              ========================================================== */}
+              {/* COMMENT PANEL */}
               {selectedPost && (
                 <CommentPanel
                   post={selectedPost}
                   currentUser={user}
                   onClose={() => setSelectedPost(null)}
                 />
+              )}
+
+              {/* FULL-SCREEN IMAGE MODAL */}
+              {fullScreenImage && (
+                <div
+                  style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(2, 61, 32, 0.95)", zIndex: 9999, display: "flex", justifyContent: "center", alignItems: "center", padding: "1.5rem", backdropFilter: "blur(8px)" }}
+                  onClick={() => setFullScreenImage(null)}
+                >
+                  <button
+                    onClick={() => setFullScreenImage(null)}
+                    style={{ position: "absolute", top: "1.5rem", right: "1.5rem", background: "rgba(255,255,255,0.1)", border: "none", color: "white", cursor: "pointer", padding: "0.75rem", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }}
+                    onMouseOver={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.2)"}
+                    onMouseOut={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+                    aria-label="Close image"
+                  >
+                    <CloseIcon size={24} />
+                  </button>
+                  <img
+                    src={fullScreenImage}
+                    alt="Post view full size"
+                    style={{ maxWidth: "100%", maxHeight: "85vh", objectFit: "contain", borderRadius: "12px", boxShadow: "0 20px 50px rgba(0,0,0,0.3)" }}
+                    onClick={(e) => e.stopPropagation()} 
+                  />
+                </div>
               )}
             </>
           ) : null}
@@ -996,135 +876,56 @@ export default function Home() {
 }
 
 // ---------------------------------------------------------------
-// AUTHOR DETAILS
+// UTILITIES & ICONS
 // ---------------------------------------------------------------
 function formatAuthorDetails(author) {
   return [author?.course, author?.batchYear].filter(Boolean).join(" · ");
 }
 
-// ---------------------------------------------------------------
-// POST TIME
-// ---------------------------------------------------------------
 function formatPostTime(createdAt) {
-  if (!createdAt) {
-    return "";
-  }
-
+  if (!createdAt) return "";
   const date = new Date(createdAt);
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-
-  if (seconds < 60) {
-    return "Just now";
-  }
-
+  if (seconds < 60) return "Just now";
   const minutes = Math.floor(seconds / 60);
-
-  if (minutes < 60) {
-    return `${minutes}m`;
-  }
-
+  if (minutes < 60) return `${minutes}m`;
   const hours = Math.floor(minutes / 60);
-
-  if (hours < 24) {
-    return `${hours}h`;
-  }
-
+  if (hours < 24) return `${hours}h`;
   const days = Math.floor(hours / 24);
-
-  if (days < 7) {
-    return `${days}d`;
-  }
-
-  return date.toLocaleDateString(undefined, {
-    day: "numeric",
-    month: "short",
-  });
+  if (days < 7) return `${days}d`;
+  return date.toLocaleDateString(undefined, { day: "numeric", month: "short" });
 }
 
-// ---------------------------------------------------------------
-// LIKE ICON
-// ---------------------------------------------------------------
 function LikeIcon({ filled = false }) {
   return (
     <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-      <path
-        d="
-          M7.5 21H4
-          a2 2 0 0 1-2-2
-          v-7
-          a2 2 0 0 1 2-2
-          h3.5
-
-          l3.2-6.1
-
-          c.4-.8
-          1.4-1.2
-          2.2-.8
-
-          c.8.4
-          1.2 1.3
-          1 2.2
-
-          L13 9
-          h5.1
-
-          c2 0
-          3.3 1.9
-          2.7 3.8
-
-          l-1.5 5.5
-
-          c-.4 1.6
-          -1.9 2.7
-          -3.5 2.7
-
-          H7.5
-          Z
-        "
-        fill={filled ? "currentColor" : "none"}
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <path d="M7.5 21H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3.5l3.2-6.1c.4-.8 1.4-1.2 2.2-.8c.8.4 1.2 1.3 1 2.2L13 9h5.1c2 0 3.3 1.9 2.7 3.8l-1.5 5.5c-.4 1.6-1.9 2.7-3.5 2.7H7.5Z" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
-// ---------------------------------------------------------------
-// COMMENT ICON
-// ---------------------------------------------------------------
 function CommentIcon() {
   return (
     <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-      <path
-        d="
-          M20 15
-          a4 4 0 0 1-4 4
-          H9
-          l-5 3
-          v-7
+      <path d="M20 15a4 4 0 0 1-4 4H9l-5 3v-7a4 4 0 0 1-1-2.7V8a4 4 0 0 1 4-4h9a4 4 0 0 1 4 4Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
-          a4 4 0 0 1-1-2.7
+function ImageIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+      <circle cx="8.5" cy="8.5" r="1.5" />
+      <polyline points="21 15 16 10 5 21" />
+    </svg>
+  );
+}
 
-          V8
-
-          a4 4 0 0 1
-          4-4
-
-          h9
-
-          a4 4 0 0 1
-          4 4
-
-          Z
-        "
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+function CloseIcon({ size = 24 }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
+      <path d="M18 6L6 18M6 6l12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

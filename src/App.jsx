@@ -30,6 +30,7 @@ import Privacy from "./pages/Privacy";
 import Support from "./pages/Support"; // Ensure the path matches your folder structure
 import StartupRedirect from "./components/StartupRedirect";
 import WallPage from "./pages/wall";
+
 // ---------------------------------------------------------------
 // AUTHENTICATED PAGES
 // ---------------------------------------------------------------
@@ -77,6 +78,7 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/support" element={<Support />} />
           <Route path="/wall" element={<WallPage/>}/>
+
         </Route>
 
         <Route path="/complete-profile" element={<CompleteProfile />} />
