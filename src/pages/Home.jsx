@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import AppShell from "../components/AppShell";
 import CommentPanel from "../components/CommentPanel";
 import UserAvatar from "../components/UserAvatar";
 
@@ -35,6 +34,7 @@ export default function Home() {
   // -------------------------------------------------------------
   // POST COMPOSER STATE
   // -------------------------------------------------------------
+  const [isComposerExpanded, setIsComposerExpanded] = useState(false);
   const [content, setContent] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
@@ -340,12 +340,20 @@ export default function Home() {
 
     setSelectedImage(file);
     setImagePreview(URL.createObjectURL(file));
+    setIsComposerExpanded(true); // Auto-expand if they trigger file select from compact view
   }
 
   function handleCancelImage() {
     setSelectedImage(null);
     if (imagePreview) URL.revokeObjectURL(imagePreview);
     setImagePreview("");
+  }
+
+  function handleCancelComposer() {
+    setIsComposerExpanded(false);
+    setContent("");
+    handleCancelImage();
+    setPostError("");
   }
 
   // -------------------------------------------------------------
@@ -356,7 +364,6 @@ export default function Home() {
 
     const cleanContent = content.trim();
 
-    // Ensure content is provided to match original constraints
     if (!cleanContent) {
       setPostError("Please write something to share.");
       return;
@@ -376,7 +383,8 @@ export default function Home() {
         await createPost(cleanContent);
       }
       setContent("");
-      handleCancelImage(); // Clean up image state perfectly
+      handleCancelImage();
+      setIsComposerExpanded(false);
     } catch (error) {
       setPostError(error.message || "Couldn't publish your post.");
     } finally {
@@ -431,27 +439,37 @@ export default function Home() {
           --brand-primary-hover: #03522b;
           --brand-accent: #b6c324;
           --brand-accent-hover: #c9d532;
-          --brand-shadow: rgba(2, 61, 32, 0.08);
           --text-main: #111827;
           --text-muted: #6b7280;
+          
+          --space-1: 4px;
+          --space-2: 8px;
+          --space-3: 12px;
+          --space-4: 16px;
+          --space-5: 24px;
+          
+          --radius-sm: 10px;
+          --radius-md: 14px;
+          --radius-pill: 30px;
+          
+          --hairline: 0.5px solid #e5e7eb;
         }
 
         .premium-container {
           max-width: 800px;
           margin: 0 auto;
-          padding: 1rem;
+          background: #ffffff;
+          min-height: 100vh;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
           animation: fadeIn 0.4s ease-out forwards;
         }
 
         .premium-card {
           background-color: #ffffff;
-          border-radius: 20px;
+          border-radius: var(--radius-md);
           overflow: hidden;
-          box-shadow: 0 10px 30px var(--brand-shadow);
-          border: 1px solid rgba(0,0,0,0.03);
-          margin-bottom: 2rem;
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+          border: 1px solid rgba(0,0,0,0.04);
         }
 
         .btn-premium {
@@ -459,179 +477,146 @@ export default function Home() {
           align-items: center;
           justify-content: center;
           gap: 8px;
-          padding: 10px 20px;
-          border-radius: 30px;
+          padding: 8px 16px;
+          border-radius: var(--radius-pill);
           border: none;
           font-size: 0.95rem;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-          box-sizing: border-box;
         }
 
         .btn-primary {
           background-color: var(--brand-primary);
           color: #ffffff;
-          box-shadow: 0 4px 12px rgba(2, 61, 32, 0.2);
         }
-        
-        .btn-primary:hover:not(:disabled) {
-          background-color: var(--brand-primary-hover);
-          transform: translateY(-1px);
-          box-shadow: 0 6px 16px rgba(2, 61, 32, 0.3);
+        .btn-primary:hover:not(:disabled) { background-color: var(--brand-primary-hover); }
+        .btn-secondary { background-color: #f3f4f6; color: #374151; }
+        .btn-secondary:hover:not(:disabled) { background-color: #e5e7eb; }
+        .btn-premium:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* Composer Styles */
+        .composer-wrapper {
+          border-bottom: var(--hairline);
+          padding: var(--space-4);
+          background: #ffffff;
         }
 
-        .btn-premium:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-          box-shadow: none;
-          transform: none;
+        .composer-collapsed {
+          display: flex;
+          align-items: center;
+          gap: var(--space-3);
+          cursor: text;
         }
+
+        .composer-pill {
+          flex: 1;
+          height: 40px;
+          border-radius: var(--radius-pill);
+          background-color: #f9fafb;
+          border: 1px solid #f3f4f6;
+          display: flex;
+          align-items: center;
+          padding: 0 16px;
+          color: var(--text-muted);
+          font-size: 0.95rem;
+          transition: background-color 0.2s;
+        }
+        .composer-pill:hover { background-color: #f3f4f6; }
 
         .premium-input {
-          padding: 14px 16px;
-          border-radius: 16px;
-          border: 1.5px solid #e5e7eb;
-          background-color: #f9fafb;
+          width: 100%;
+          border: none;
+          background: transparent;
           font-size: 1rem;
           color: var(--text-main);
           outline: none;
-          transition: all 0.2s ease;
-          width: 100%;
-          box-sizing: border-box;
+          resize: none;
           font-family: inherit;
         }
-        
-        .premium-input:focus {
-          border-color: var(--brand-primary);
+
+        /* Post Item Styles (Edge-to-Edge) */
+        .feed-post {
+          border-bottom: var(--hairline);
+          padding: var(--space-4) 0 var(--space-3) 0;
           background-color: #ffffff;
-          box-shadow: 0 0 0 4px rgba(2, 61, 32, 0.05);
+        }
+        
+        .feed-post-header, .feed-post-content, .feed-post-actions {
+          padding: 0 var(--space-4);
         }
 
-        .premium-badge-container {
-          position: sticky;
-          top: 1rem;
-          z-index: 50;
+        .feed-post-image {
+          margin: var(--space-3) 0;
+          width: 100%;
+          cursor: zoom-in;
+          background: #f9fafb;
+        }
+        
+        .feed-post-image img {
+          width: 100%;
+          max-height: 600px;
+          object-fit: cover;
+          display: block;
+        }
+
+        /* Action Cluster */
+        .action-cluster {
           display: flex;
-          justify-content: center;
-          margin-bottom: 1.5rem;
-        }
-
-        .premium-badge-btn {
-          background-color: var(--brand-accent);
-          color: var(--brand-primary);
-          padding: 10px 24px;
-          border-radius: 30px;
-          font-weight: 700;
-          font-size: 0.95rem;
-          box-shadow: 0 4px 15px rgba(182, 195, 36, 0.3);
-          border: none;
-          cursor: pointer;
-          transition: all 0.2s;
-          display: inline-flex;
           align-items: center;
-          gap: 6px;
-        }
-
-        .premium-badge-btn:hover {
-          transform: translateY(-2px);
-          background-color: var(--brand-accent-hover);
-          box-shadow: 0 6px 20px rgba(182, 195, 36, 0.4);
-        }
-
-        .premium-post-card {
-          background-color: #ffffff;
-          border-radius: 20px;
-          padding: 1.5rem;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-          border: 1px solid rgba(0,0,0,0.02);
-          margin-bottom: 1.25rem;
-          transition: box-shadow 0.2s ease;
-        }
-        
-        .premium-post-card:hover {
-          box-shadow: 0 8px 25px var(--brand-shadow);
-        }
-
-        .post-action-row {
-          display: flex;
-          gap: 0.5rem;
-          border-top: 1px solid #f3f4f6;
-          padding-top: 1rem;
-          flex-wrap: wrap;
+          gap: var(--space-5);
+          margin-top: var(--space-2);
         }
 
         .feed-action-btn {
           display: inline-flex;
           align-items: center;
-          justify-content: center;
           gap: 6px;
-          padding: 10px 16px;
-          border-radius: 12px;
+          background: transparent;
           border: none;
-          background-color: transparent;
+          padding: 4px 0;
           color: var(--text-muted);
-          font-size: 0.95rem;
+          font-size: 0.9rem;
           font-weight: 600;
           cursor: pointer;
-          transition: all 0.2s;
-          flex: 1;
+          transition: color 0.2s;
         }
-        
-        .feed-action-btn:hover:not(:disabled) {
-          background-color: #f9fafb;
-          color: var(--brand-primary);
-        }
-        
-        .feed-action-btn.liked {
-          color: var(--brand-accent);
-          background-color: rgba(182, 195, 36, 0.05);
-        }
+        .feed-action-btn:hover:not(:disabled) { color: var(--brand-primary); }
+        .feed-action-btn.liked { color: var(--brand-accent); }
 
-        .mini-action-btn {
-          display: inline-flex;
-          align-items: center;
+        .premium-badge-container {
+          position: sticky;
+          top: var(--space-2);
+          z-index: 50;
+          display: flex;
           justify-content: center;
-          padding: 8px 12px;
-          border-radius: 20px;
-          border: none;
-          background-color: #f9fafb;
-          color: var(--text-muted);
-          font-weight: 600;
-          font-size: 0.85rem;
-          cursor: pointer;
-          transition: all 0.2s;
+          pointer-events: none;
         }
 
-        .mini-action-btn:hover:not(:disabled) {
-          background-color: rgba(2, 61, 32, 0.05);
+        .premium-badge-btn {
+          pointer-events: auto;
+          background-color: var(--brand-accent);
           color: var(--brand-primary);
+          padding: 8px 20px;
+          border-radius: var(--radius-pill);
+          font-weight: 700;
+          font-size: 0.9rem;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+          border: none;
+          cursor: pointer;
         }
 
         .premium-banner-msg {
-          padding: 14px 16px;
-          border-radius: 12px;
+          padding: var(--space-3);
+          border-radius: var(--radius-md);
           font-size: 0.9rem;
-          font-weight: 500;
-          margin-bottom: 1.5rem;
-          display: flex;
-          align-items: center;
+          margin-bottom: var(--space-3);
         }
-        
-        .premium-banner-error {
-          background-color: #fef2f2;
-          color: #b91c1c;
-          border: 1px solid #fecaca;
-        }
+        .premium-banner-error { background-color: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
 
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
-        }
-
-        @media (min-width: 640px) {
-          .premium-container { padding: 2rem 1.5rem; }
-          .feed-action-btn { flex: none; justify-content: flex-start; }
         }
       `}</style>
 
@@ -645,101 +630,101 @@ export default function Home() {
             </div>
           ) : user ? (
             <>
-              <section className="premium-container">
+              <div className="premium-container">
                 
                 {/* NEW POSTS BADGE */}
                 {pendingPosts.length > 0 && (
                   <div className="premium-badge-container">
-                    <button
-                      type="button"
-                      className="premium-badge-btn"
-                      onClick={handleRevealNewPosts}
-                    >
-                      ↑ {pendingPosts.length} New {pendingPosts.length === 1 ? "Post" : "Posts"}
+                    <button type="button" className="premium-badge-btn" onClick={handleRevealNewPosts}>
+                      ↑ {pendingPosts.length} New
                     </button>
                   </div>
                 )}
 
-                {/* POST COMPOSER */}
-                <form className="premium-card" style={{ padding: "1.5rem" }} onSubmit={handleCreatePost}>
-                  
-                  <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start", marginBottom: "1rem" }}>
-                    <div style={{ flexShrink: 0 }}>
-                      <UserAvatar name={user.name} profilePictureUrl={user.profilePictureUrl} size="medium" />
-                    </div>
-
-                    <textarea
-                      className="premium-input"
-                      style={{ resize: "vertical", minHeight: "80px" }}
-                      value={content}
-                      onChange={(event) => setContent(event.target.value)}
-                      placeholder="Share something with your community"
-                      maxLength={MAX_POST_LENGTH}
-                      rows="3"
-                      aria-label="Create a post"
-                    />
-                  </div>
-
-                  {/* IMAGE PREVIEW AREA */}
-                  {imagePreview && (
-                    <div style={{ margin: "0 0 1rem 3.5rem", position: "relative", display: "inline-block" }}>
-                      <img 
-                        src={imagePreview} 
-                        alt="Upload preview" 
-                        style={{ borderRadius: "12px", maxHeight: "200px", maxWidth: "100%", objectFit: "cover", border: "1px solid #e5e7eb" }} 
-                      />
+                {/* COMPOSER ROW */}
+                <div className="composer-wrapper">
+                  {!isComposerExpanded ? (
+                    <div className="composer-collapsed" onClick={() => setIsComposerExpanded(true)}>
+                      <UserAvatar name={user.name} profilePictureUrl={user.profilePictureUrl} size="small" />
+                      <div className="composer-pill">Share something with your community...</div>
                       <button 
                         type="button" 
-                        onClick={handleCancelImage} 
-                        disabled={posting}
-                        style={{ position: "absolute", top: "8px", right: "8px", background: "rgba(0,0,0,0.6)", color: "white", border: "none", borderRadius: "50%", width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                        style={{ background: 'none', border: 'none', color: 'var(--brand-primary)', cursor: 'pointer', padding: '4px' }}
+                        onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
                       >
-                        <CloseIcon size={16} />
+                        <ImageIcon size={22} />
                       </button>
                     </div>
+                  ) : (
+                    <form className="premium-card" style={{ padding: "var(--space-3)" }} onSubmit={handleCreatePost}>
+                      <div style={{ display: "flex", gap: "var(--space-3)", alignItems: "flex-start", marginBottom: "var(--space-3)" }}>
+                        <div style={{ flexShrink: 0 }}>
+                          <UserAvatar name={user.name} profilePictureUrl={user.profilePictureUrl} size="small" />
+                        </div>
+                        <textarea
+                          className="premium-input"
+                          style={{ minHeight: "80px", paddingTop: "6px" }}
+                          value={content}
+                          onChange={(event) => setContent(event.target.value)}
+                          placeholder="What's on your mind?"
+                          maxLength={MAX_POST_LENGTH}
+                          rows="3"
+                          autoFocus
+                        />
+                      </div>
+
+                      {imagePreview && (
+                        <div style={{ margin: "0 0 var(--space-3) 44px", position: "relative", display: "inline-block" }}>
+                          <img 
+                            src={imagePreview} 
+                            alt="Upload preview" 
+                            style={{ borderRadius: "var(--radius-sm)", maxHeight: "200px", maxWidth: "100%", objectFit: "cover", border: "1px solid #e5e7eb" }} 
+                          />
+                          <button 
+                            type="button" 
+                            onClick={handleCancelImage} 
+                            disabled={posting}
+                            style={{ position: "absolute", top: "8px", right: "8px", background: "rgba(0,0,0,0.6)", color: "white", border: "none", borderRadius: "50%", width: "26px", height: "26px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                          >
+                            <CloseIcon size={14} />
+                          </button>
+                        </div>
+                      )}
+
+                      {postError && (
+                        <div className="premium-banner-msg premium-banner-error" style={{ marginLeft: "44px" }}>
+                          {postError}
+                        </div>
+                      )}
+
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginLeft: "44px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
+                          <button 
+                            type="button" 
+                            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 0, display: 'flex' }}
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={posting}
+                          >
+                            <ImageIcon size={20} />
+                          </button>
+                          <small style={{ color: "#9ca3af", fontWeight: "500", fontSize: "0.85rem" }}>
+                            {content.length}/{MAX_POST_LENGTH}
+                          </small>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button type="button" className="btn-premium btn-secondary" onClick={handleCancelComposer} disabled={posting}>
+                            Cancel
+                          </button>
+                          <button type="submit" className="btn-premium btn-primary" disabled={posting || (!content.trim() && !selectedImage)}>
+                            {posting ? "Posting..." : "Post"}
+                          </button>
+                        </div>
+                      </div>
+                    </form>
                   )}
-
-                  {postError && (
-                    <div className="premium-banner-msg premium-banner-error" style={{ marginBottom: "1rem" }}>
-                      {postError}
-                    </div>
-                  )}
-
-                  {/* COMPOSER ACTIONS */}
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #f3f4f6", paddingTop: "1rem" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                      
-                      <button 
-                        type="button" 
-                        className="mini-action-btn"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={posting}
-                      >
-                        <ImageIcon />
-                        <span style={{ marginLeft: "4px" }}>Image</span>
-                      </button>
-                      <input 
-                        type="file" 
-                        accept="image/jpeg, image/png, image/webp" 
-                        hidden 
-                        ref={fileInputRef} 
-                        onChange={handleImageSelected} 
-                      />
-
-                      <small style={{ color: "#9ca3af", fontWeight: "600", fontSize: "0.85rem" }}>
-                        {content.length}/{MAX_POST_LENGTH}
-                      </small>
-                    </div>
-
-                    <button
-                      type="submit"
-                      className="btn-premium btn-primary"
-                      disabled={posting || !content.trim()}
-                    >
-                      {posting ? "Posting..." : "Post"}
-                    </button>
-                  </div>
-                </form>
+                  <input type="file" accept="image/jpeg, image/png, image/webp" hidden ref={fileInputRef} onChange={handleImageSelected} />
+                </div>
 
                 {/* FEED */}
                 <div>
@@ -750,90 +735,77 @@ export default function Home() {
                   {posts.map((post, index) => {
                     const isLastPost = index === posts.length - 1;
                     return (
-                      <article key={post.id} className="premium-post-card" ref={isLastPost ? lastPostRef : null}>
+                      <article key={post.id} className="feed-post" ref={isLastPost ? lastPostRef : null}>
 
                         {/* POST HEADER */}
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.25rem", flexWrap: "wrap", gap: "0.75rem" }}>
+                        <div className="feed-post-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
                           <button
                             type="button"
                             onClick={() => navigate(`/profile/${post.author.id}`)}
-                            style={{ background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer", display: "flex", gap: "0.85rem", alignItems: "center" }}
+                            style={{ background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer", display: "flex", gap: "10px", alignItems: "center" }}
                           >
-                            <UserAvatar name={post.author.name} profilePictureUrl={post.author.profilePictureUrl} size="medium" />
+                            <UserAvatar name={post.author.name} profilePictureUrl={post.author.profilePictureUrl} size="small" />
                             <div>
-                              <strong style={{ display: "block", color: "var(--text-main)", lineHeight: 1.2, fontSize: "1.05rem" }}>{post.author.name}</strong>
-                              <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: "500" }}>{formatAuthorDetails(post.author)}</span>
+                              <strong style={{ display: "block", color: "var(--text-main)", lineHeight: 1.2, fontSize: "0.95rem" }}>{post.author.name}</strong>
+                              <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>{formatAuthorDetails(post.author)}</span>
                             </div>
                           </button>
-                          <time dateTime={post.createdAt} style={{ fontSize: "0.85rem", color: "#9ca3af", fontWeight: "500" }}>{formatPostTime(post.createdAt)}</time>
+                          <time dateTime={post.createdAt} style={{ fontSize: "0.8rem", color: "#9ca3af", marginTop: "2px" }}>{formatPostTime(post.createdAt)}</time>
                         </div>
 
                         {/* POST CONTENT */}
-                        <p style={{ margin: "0 0 1.25rem 0", color: "#374151", lineHeight: 1.6, whiteSpace: "pre-wrap", fontSize: "1.05rem" }}>
-                          {post.content}
-                        </p>
+                        <div className="feed-post-content">
+                          <p style={{ margin: "0 0 10px 0", color: "#111827", lineHeight: 1.5, whiteSpace: "pre-wrap", fontSize: "0.95rem" }}>
+                            {post.content}
+                          </p>
+                        </div>
 
-                        {/* POST IMAGE */}
+                        {/* POST IMAGE (FULL BLEED) */}
                         {post.imageUrl && (
-                          <div 
-                            style={{ margin: "0 0 1.25rem 0", borderRadius: "16px", overflow: "hidden", cursor: "zoom-in", border: "1px solid rgba(0,0,0,0.04)" }} 
-                            onClick={() => setFullScreenImage(post.imageUrl)}
-                          >
-                            <img 
-                              src={post.imageUrl} 
-                              alt="Post attachment" 
-                              loading="lazy"
-                              style={{ width: "100%", maxHeight: "500px", objectFit: "cover", display: "block" }} 
-                            />
+                          <div className="feed-post-image" onClick={() => setFullScreenImage(post.imageUrl)}>
+                            <img src={post.imageUrl} alt="Post attachment" loading="lazy" />
                           </div>
                         )}
 
                         {/* POST ACTIONS */}
-                        <div className="post-action-row">
-                          <button
-                            type="button"
-                            className={`feed-action-btn ${post.likedByMe ? 'liked' : ''}`}
-                            disabled={likingPosts.has(post.id)}
-                            onClick={() => handleToggleLike(post.id)}
-                            aria-pressed={post.likedByMe}
-                          >
-                            <LikeIcon filled={post.likedByMe} />
-                            <span>{post.likedByMe ? "Liked" : "Like"}</span>
-                            {post.likeCount > 0 && <span style={{ marginLeft: "4px" }}>{post.likeCount}</span>}
-                          </button>
+                        <div className="feed-post-actions">
+                          <div className="action-cluster">
+                            <button
+                              type="button"
+                              className={`feed-action-btn ${post.likedByMe ? 'liked' : ''}`}
+                              disabled={likingPosts.has(post.id)}
+                              onClick={() => handleToggleLike(post.id)}
+                            >
+                              <LikeIcon filled={post.likedByMe} />
+                              {post.likeCount > 0 && <span>{post.likeCount}</span>}
+                            </button>
 
-                          <button type="button" className="feed-action-btn" onClick={() => setSelectedPost(post)}>
-                            <CommentIcon />
-                            <span>Comment</span>
-                            {post.commentCount > 0 && <span style={{ marginLeft: "4px" }}>{post.commentCount}</span>}
-                          </button>
+                            <button type="button" className="feed-action-btn" onClick={() => setSelectedPost(post)}>
+                              <CommentIcon />
+                              {post.commentCount > 0 && <span>{post.commentCount}</span>}
+                            </button>
+                          </div>
                         </div>
                       </article>
                     );
                   })}
 
                   {loadingMore && (
-                    <div style={{ textAlign: "center", padding: "2rem 0" }}><CreativeLoader message="Loading more posts..." /></div>
+                    <div style={{ padding: "2rem 0" }}><CreativeLoader message="Loading more posts..." /></div>
                   )}
 
                   {feedError && (
-                    <div className="premium-banner-msg premium-banner-error">{feedError}</div>
+                    <div style={{ padding: "1rem" }}><div className="premium-banner-msg premium-banner-error">{feedError}</div></div>
                   )}
 
                   {!feedLoading && !feedError && posts.length === 0 && (
-                    <div style={{ textAlign: "center", padding: "4rem 2rem", backgroundColor: "#ffffff", borderRadius: "20px", border: "2px dashed #e5e7eb", boxShadow: "0 4px 15px rgba(0,0,0,0.02)" }}>
-                      <strong style={{ display: "block", color: "var(--brand-primary)", fontSize: "1.2rem", marginBottom: "0.5rem" }}>No posts yet</strong>
-                      <p style={{ color: "var(--text-muted)", margin: 0 }}>Be the first person to start the conversation.</p>
+                    <div style={{ padding: "4rem 2rem", textAlign: "center" }}>
+                      <strong style={{ display: "block", color: "var(--text-main)", fontSize: "1.1rem" }}>No posts yet</strong>
+                      <p style={{ color: "var(--text-muted)", margin: "4px 0 0 0", fontSize: "0.9rem" }}>Be the first to start the conversation.</p>
                     </div>
                   )}
-
-                  {!feedLoading && !loadingMore && !hasMore && posts.length > 0 && (
-                    <p style={{ textAlign: "center", color: "#9ca3af", marginTop: "3rem", marginBottom: "2rem", fontSize: "0.95rem", fontWeight: "500" }}>
-                      — You've reached the end —
-                    </p>
-                  )}
                 </div>
-              </section>
+              </div>
 
               {/* COMMENT PANEL */}
               {selectedPost && (
@@ -847,22 +819,19 @@ export default function Home() {
               {/* FULL-SCREEN IMAGE MODAL */}
               {fullScreenImage && (
                 <div
-                  style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(2, 61, 32, 0.95)", zIndex: 9999, display: "flex", justifyContent: "center", alignItems: "center", padding: "1.5rem", backdropFilter: "blur(8px)" }}
+                  style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0, 0, 0, 0.9)", zIndex: 9999, display: "flex", justifyContent: "center", alignItems: "center" }}
                   onClick={() => setFullScreenImage(null)}
                 >
                   <button
                     onClick={() => setFullScreenImage(null)}
-                    style={{ position: "absolute", top: "1.5rem", right: "1.5rem", background: "rgba(255,255,255,0.1)", border: "none", color: "white", cursor: "pointer", padding: "0.75rem", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", transition: "background 0.2s" }}
-                    onMouseOver={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.2)"}
-                    onMouseOut={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
-                    aria-label="Close image"
+                    style={{ position: "absolute", top: "1rem", right: "1rem", background: "rgba(255,255,255,0.1)", border: "none", color: "white", cursor: "pointer", padding: "8px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
                   >
                     <CloseIcon size={24} />
                   </button>
                   <img
                     src={fullScreenImage}
                     alt="Post view full size"
-                    style={{ maxWidth: "100%", maxHeight: "85vh", objectFit: "contain", borderRadius: "12px", boxShadow: "0 20px 50px rgba(0,0,0,0.3)" }}
+                    style={{ maxWidth: "100%", maxHeight: "100vh", objectFit: "contain" }}
                     onClick={(e) => e.stopPropagation()} 
                   />
                 </div>
@@ -898,7 +867,7 @@ function formatPostTime(createdAt) {
 
 function LikeIcon({ filled = false }) {
   return (
-    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
       <path d="M7.5 21H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3.5l3.2-6.1c.4-.8 1.4-1.2 2.2-.8c.8.4 1.2 1.3 1 2.2L13 9h5.1c2 0 3.3 1.9 2.7 3.8l-1.5 5.5c-.4 1.6-1.9 2.7-3.5 2.7H7.5Z" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
@@ -906,15 +875,15 @@ function LikeIcon({ filled = false }) {
 
 function CommentIcon() {
   return (
-    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
       <path d="M20 15a4 4 0 0 1-4 4H9l-5 3v-7a4 4 0 0 1-1-2.7V8a4 4 0 0 1 4-4h9a4 4 0 0 1 4 4Z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
-function ImageIcon() {
+function ImageIcon({ size = 24 }) {
   return (
-    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
       <circle cx="8.5" cy="8.5" r="1.5" />
       <polyline points="21 15 16 10 5 21" />
